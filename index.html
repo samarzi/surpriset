@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="description" content="SurpriSet - сервис готовых подарков с возможностью сборки индивидуальных наборов" />
+    
+    <!-- Telegram WebApp specific meta tags -->
+    <meta name="telegram-web-app" content="expand" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#C6FF00" />
+    
+    <title>SurpriSet - Идеальные подарки на любой случай</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Telegram WebApp expansion script - выполняется после загрузки DOM -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, checking for Telegram WebApp...');
+        
+        function expandWebApp() {
+          if (window.Telegram && window.Telegram.WebApp) {
+            console.log('Telegram WebApp found, expanding...');
+            try {
+              window.Telegram.WebApp.ready();
+              window.Telegram.WebApp.expand();
+              console.log('WebApp expanded successfully');
+              return true;
+            } catch (e) {
+              console.error('Failed to expand WebApp:', e);
+              return false;
+            }
+          }
+          return false;
+        }
+        
+        // Попытка сразу после загрузки DOM
+        if (!expandWebApp()) {
+          console.log('WebApp not ready, waiting...');
+          
+          // Ждем до 5 секунд с интервалом 100ms
+          let attempts = 0;
+          const maxAttempts = 50;
+          
+          const interval = setInterval(function() {
+            attempts++;
+            console.log('Expansion attempt', attempts);
+            
+            if (expandWebApp() || attempts >= maxAttempts) {
+              clearInterval(interval);
+              if (attempts >= maxAttempts) {
+                console.log('Max expansion attempts reached');
+              }
+            }
+          }, 100);
+        }
+      });
+    </script>
+  </body>
+</html>

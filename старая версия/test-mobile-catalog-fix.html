@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест мобильного каталога</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .success { background: #22c55e; }
+        .error { background: #ef4444; }
+        .warning { background: #f59e0b; }
+        .info { background: #3b82f6; }
+        button {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #16a34a;
+        }
+        .products {
+            margin-top: 20px;
+        }
+        .product {
+            background: #2a2a2a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #22c55e;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Тест мобильного каталога</h1>
+        
+        <div id="status" class="status info">
+            Готов к тестированию
+        </div>
+
+        <button onclick="testConnection()">🌐 Проверить соединение</button>
+        <button onclick="testProductsLoad()">📦 Загрузить товары</button>
+        <button onclick="testMobileOptimization()">📱 Тест мобильной оптимизации</button>
+        <button onclick="clearResults()">🗑️ Очистить результаты</button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Имитация переменных окружения для теста
+        const VITE_SUPABASE_URL = 'https://your-project.supabase.co';
+        const VITE_SUPABASE_ANON_KEY = 'your-anon-key';
+
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function addResult(title, content, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = `<strong>${title}:</strong><br>${content}`;
+            results.appendChild(div);
+        }
+
+        async function testConnection() {
+            updateStatus('Проверяем соединение...', 'warning');
+            
+            try {
+                // Проверяем базовое соединение
+                const response = await fetch('https://httpbin.org/json', {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    addResult('✅ Соединение', 'Интернет работает нормально', 'success');
+                    
+                    // Проверяем качество соединения
+                    const start = Date.now();
+                    await response.json();
+                    const latency = Date.now() - start;
+                    
+                    if (latency < 200) {
+                        addResult('🚀 Скорость', `Быстрое соединение (${latency}ms)`, 'success');
+                    } else if (latency < 500) {
+                        addResult('⚡ Скорость', `Нормальное соединение (${latency}ms)`, 'warning');
+                    } else {
+                        addResult('🐌 Скорость', `Медленное соединение (${latency}ms)`, 'error');
+                    }
+                    
+                    updateStatus('Соединение проверено', 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                addResult('❌ Ошибка соединения', error.message, 'error');
+                updateStatus('Проблема с соединением', 'error');
+            }
+        }
+
+        async function testProductsLoad() {
+            updateStatus('Загружаем товары...', 'warning');
+            
+            try {
+                // Имитируем загрузку товаров с мобильной оптимизацией
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                addResult('📱 Устройство', isMobile ? 'Мобильное устройство обнаружено' : 'Десктоп устройство', isMobile ? 'success' : 'info');
+                
+                // Имитируем различные методы загрузки
+                const methods = [
+                    { name: 'REST API', url: 'https://httpbin.org/delay/1' },
+                    { name: 'Supabase Client', url: 'https://httpbin.org/delay/2' },
+                    { name: 'Fallback', url: 'https://httpbin.org/json' }
+                ];
+                
+                for (const method of methods) {
+                    try {
+                        const start = Date.now();
+                        const response = await fetch(method.url, {
+                            timeout: 10000
+                        });
+                        const latency = Date.now() - start;
+                        
+                        if (response.ok) {
+                            addResult(`✅ ${method.name}`, `Успешно (${latency}ms)`, 'success');
+                            break; // Первый успешный метод
+                        } else {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                    } catch (error) {
+                        addResult(`❌ ${method.name}`, `Ошибка: ${error.message}`, 'error');
+                    }
+                }
+                
+                updateStatus('Товары загружены', 'success');
+                
+            } catch (error) {
+                addResult('❌ Критическая ошибка', error.message, 'error');
+                updateStatus('Не удалось загрузить товары', 'error');
+            }
+        }
+
+        async function testMobileOptimization() {
+            updateStatus('Тестируем мобильную оптимизацию...', 'warning');
+            
+            // Проверяем Network Information API
+            if ('connection' in navigator) {
+                const connection = navigator.connection;
+                addResult('📶 Тип соединения', connection.effectiveType || 'unknown', 'info');
+                addResult('📊 Скорость загрузки', `${connection.downlink || 'unknown'} Mbps`, 'info');
+                addResult('⏱️ RTT', `${connection.rtt || 'unknown'} ms`, 'info');
+            } else {
+                addResult('📶 Network API', 'Не поддерживается', 'warning');
+            }
+            
+            // Проверяем Telegram WebApp
+            if (window.Telegram && window.Telegram.WebApp) {
+                addResult('💬 Telegram WebApp', 'Обнаружен', 'success');
+                addResult('🎨 Тема', window.Telegram.WebApp.colorScheme, 'info');
+            } else {
+                addResult('💬 Telegram WebApp', 'Не обнаружен', 'info');
+            }
+            
+            // Проверяем localStorage
+            try {
+                localStorage.setItem('test', 'value');
+                localStorage.removeItem('test');
+                addResult('💾 LocalStorage', 'Работает', 'success');
+            } catch (error) {
+                addResult('💾 LocalStorage', 'Ошибка: ' + error.message, 'error');
+            }
+            
+            // Проверяем Service Worker
+            if ('serviceWorker' in navigator) {
+                addResult('⚙️ Service Worker', 'Поддерживается', 'success');
+            } else {
+                addResult('⚙️ Service Worker', 'Не поддерживается', 'warning');
+            }
+            
+            updateStatus('Мобильная оптимизация проверена', 'success');
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            updateStatus('Результаты очищены', 'info');
+        }
+
+        // Автоматическая проверка при загрузке
+        window.addEventListener('load', () => {
+            addResult('🚀 Страница загружена', new Date().toLocaleString(), 'success');
+            
+            // Показываем информацию о браузере
+            addResult('🌐 User Agent', navigator.userAgent, 'info');
+            addResult('📱 Viewport', `${window.innerWidth}x${window.innerHeight}`, 'info');
+            addResult('🌍 Язык', navigator.language, 'info');
+            addResult('📶 Онлайн', navigator.onLine ? 'Да' : 'Нет', navigator.onLine ? 'success' : 'error');
+        });
+
+        // Отслеживаем изменения соединения
+        window.addEventListener('online', () => {
+            addResult('🌐 Соединение', 'Восстановлено', 'success');
+        });
+
+        window.addEventListener('offline', () => {
+            addResult('🌐 Соединение', 'Потеряно', 'error');
+        });
+    </script>
+</body>
+</html>

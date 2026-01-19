@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Products Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .product { border: 1px solid #ccc; margin: 10px 0; padding: 10px; }
+        .loading { color: blue; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Simple Products Loading Test</h1>
+    <div id="status">Loading...</div>
+    <div id="products"></div>
+
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+        
+        const supabaseUrl = 'https://rmcedkzodiqcxnpenjld.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtY2Vka3pvZGlxY3hucGVuamxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2MjQyMTAsImV4cCI6MjA4MDIwMDIxMH0.rb6MkZ0l1Wh6bFp0KNAvUKPchbYMoZVgwDFEUnNDhcE'
+        
+        const supabase = createClient(supabaseUrl, supabaseKey)
+        
+        const statusDiv = document.getElementById('status')
+        const productsDiv = document.getElementById('products')
+        
+        async function testProducts() {
+            try {
+                statusDiv.innerHTML = '<span class="loading">Connecting to Supabase...</span>'
+                
+                // Test basic connection
+                const { data: testData, error: testError } = await supabase
+                    .from('products')
+                    .select('count')
+                    .limit(1)
+                
+                if (testError) {
+                    throw new Error(`Connection test failed: ${testError.message}`)
+                }
+                
+                statusDiv.innerHTML = '<span class="success">Connected! Loading products...</span>'
+                
+                // Load all products
+                const { data: products, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                
+                if (error) {
+                    throw new Error(`Products query failed: ${error.message}`)
+                }
+                
+                statusDiv.innerHTML = `<span class="success">Success! Found ${products.length} products</span>`
+                
+                if (products.length === 0) {
+                    productsDiv.innerHTML = '<p>No products found in database</p>'
+                } else {
+                    productsDiv.innerHTML = products.map(product => `
+                        <div class="product">
+                            <h3>${product.name}</h3>
+                            <p>Price: ${product.price}₽</p>
+                            <p>Status: ${product.status}</p>
+                            <p>Type: ${product.type}</p>
+                            <p>Tags: ${product.tags.join(', ')}</p>
+                        </div>
+                    `).join('')
+                }
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`
+                console.error('Test failed:', error)
+            }
+        }
+        
+        // Run test
+        testProducts()
+    </script>
+</body>
+</html>

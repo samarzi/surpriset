@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Homepage Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .debug-box {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status { 
+            font-weight: bold; 
+            margin-bottom: 8px;
+        }
+        .loading { color: #2196F3; }
+        .error { color: #f44336; }
+        .success { color: #4CAF50; }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .product-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .product-image {
+            width: 100%;
+            height: 150px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 React Homepage Products Test</h1>
+    
+    <div class="debug-box">
+        <div class="status">Testing React App at http://localhost:3000</div>
+        <p>This test will check if the React app is loading products correctly.</p>
+        <p><strong>Expected:</strong> 3 featured products should be visible on the homepage</p>
+        <p><strong>Products:</strong> Тапочки пушистые, Спальный набор, Часы паль</p>
+    </div>
+
+    <div class="debug-box">
+        <div class="status">Direct Database Test</div>
+        <div id="db-status">Loading...</div>
+        <div id="db-products"></div>
+    </div>
+
+    <div class="debug-box">
+        <div class="status">Instructions</div>
+        <ol>
+            <li>Open <a href="http://localhost:3000" target="_blank">http://localhost:3000</a> in a new tab</li>
+            <li>Check if you see the red debug box in the top-left corner</li>
+            <li>Check if products are displayed in the grid</li>
+            <li>Open browser console (F12) and check for any errors</li>
+            <li>Look for the SimpleProductsDebug component output</li>
+        </ol>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+        
+        const supabaseUrl = 'https://rmcedkzodiqcxnpenjld.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtY2Vka3pvZGlxY3hucGVuamxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2MjQyMTAsImV4cCI6MjA4MDIwMDIxMH0.rb6MkZ0l1Wh6bFp0KNAvUKPchbYMoZVgwDFEUnNDhcE'
+        
+        const supabase = createClient(supabaseUrl, supabaseKey)
+        
+        async function testDatabase() {
+            const statusDiv = document.getElementById('db-status')
+            const productsDiv = document.getElementById('db-products')
+            
+            try {
+                statusDiv.innerHTML = '<span class="loading">Testing featured products query...</span>'
+                
+                // Test the exact query used in HomePage
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('is_featured', true)
+                    .eq('status', 'in_stock')
+                    .not('tags', 'cs', '{__archive__}')
+                    .order('created_at', { ascending: false })
+                
+                if (error) {
+                    throw new Error(`Query failed: ${error.message}`)
+                }
+                
+                statusDiv.innerHTML = `<span class="success">✅ Found ${data.length} featured products</span>`
+                
+                if (data.length === 0) {
+                    productsDiv.innerHTML = '<p>❌ No featured products found</p>'
+                } else {
+                    productsDiv.innerHTML = `
+                        <div class="product-grid">
+                            ${data.map(product => `
+                                <div class="product-card">
+                                    <div class="product-image">📦</div>
+                                    <h3>${product.name}</h3>
+                                    <p>Price: ${product.price}₽</p>
+                                    <p>Featured: ${product.is_featured ? '✅' : '❌'}</p>
+                                    <p>Status: ${product.status}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `
+                }
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`
+                console.error('Database test failed:', error)
+            }
+        }
+        
+        // Run test
+        testDatabase()
+    </script>
+</body>
+</html>

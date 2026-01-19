@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram API Compatibility Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+        }
+        .log {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .warning { color: #ffc107; }
+        .error { color: #dc3545; }
+        button {
+            background: var(--tg-theme-button-color, #007bff);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Telegram WebApp API Compatibility Test</h1>
+    <p>Этот тест проверяет совместимость с различными версиями Telegram WebApp API</p>
+    
+    <div>
+        <button onclick="testApiCompatibility()">Проверить совместимость API</button>
+        <button onclick="testFullscreenMethods()">Тестировать полноэкранные методы</button>
+        <button onclick="testSwipeMethods()">Тестировать методы свайпов</button>
+        <button onclick="clearLog()">Очистить лог</button>
+    </div>
+    
+    <div id="log" class="log"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'warning' ? 'warning' : type === 'error' ? 'error' : '';
+            logDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function isMethodAvailable(obj, methodName) {
+            return obj && typeof obj[methodName] === 'function';
+        }
+
+        function detectTelegramApiVersion(tg) {
+            if (isMethodAvailable(tg, 'requestFullscreen')) {
+                return '7.0+';
+            } else if (isMethodAvailable(tg, 'disableVerticalSwipes')) {
+                return '6.1+';
+            } else if (isMethodAvailable(tg, 'enableClosingConfirmation')) {
+                return '6.0+';
+            } else if (isMethodAvailable(tg, 'expand')) {
+                return '5.0+';
+            } else {
+                return 'unknown';
+            }
+        }
+
+        function testApiCompatibility() {
+            log('🔍 Начинаем тест совместимости API...');
+            
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                log('❌ Telegram WebApp не обнаружен', 'error');
+                return;
+            }
+
+            const tg = window.Telegram.WebApp;
+            const version = detectTelegramApiVersion(tg);
+            log(`📱 Обнаружена версия Telegram WebApp API: ${version}`, 'success');
+
+            const methods = [
+                'ready',
+                'expand', 
+                'enableClosingConfirmation',
+                'disableClosingConfirmation',
+                'disableVerticalSwipes',
+                'enableVerticalSwipes', 
+                'requestFullscreen',
+                'exitFullscreen',
+                'onEvent',
+                'offEvent'
+            ];
+
+            log('🔍 Проверка доступности методов:');
+            methods.forEach(method => {
+                const available = isMethodAvailable(tg, method);
+                const status = available ? '✅' : '❌';
+                const logType = available ? 'success' : 'warning';
+                log(`  ${method}: ${status}`, logType);
+            });
+
+            // Проверяем свойства
+            const properties = ['isExpanded', 'isFullscreen', 'viewportHeight'];
+            log('🔍 Проверка доступности свойств:');
+            properties.forEach(prop => {
+                const available = tg[prop] !== undefined;
+                const status = available ? '✅' : '❌';
+                const value = available ? ` (${tg[prop]})` : '';
+                const logType = available ? 'success' : 'warning';
+                log(`  ${prop}: ${status}${value}`, logType);
+            });
+        }
+
+        function testFullscreenMethods() {
+            log('🖥️ Тестирование методов полноэкранного режима...');
+            
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                log('❌ Telegram WebApp не обнаружен', 'error');
+                return;
+            }
+
+            const tg = window.Telegram.WebApp;
+
+            // Тест requestFullscreen
+            if (isMethodAvailable(tg, 'requestFullscreen')) {
+                try {
+                    tg.requestFullscreen();
+                    log('✅ requestFullscreen() вызван успешно', 'success');
+                } catch (error) {
+                    log(`❌ Ошибка при вызове requestFullscreen(): ${error.message}`, 'error');
+                }
+            } else {
+                log('⚠️ requestFullscreen() не поддерживается в этой версии', 'warning');
+            }
+
+            // Тест expand (fallback)
+            try {
+                tg.expand();
+                log('✅ expand() вызван успешно (fallback)', 'success');
+            } catch (error) {
+                log(`❌ Ошибка при вызове expand(): ${error.message}`, 'error');
+            }
+        }
+
+        function testSwipeMethods() {
+            log('👆 Тестирование методов управления свайпами...');
+            
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                log('❌ Telegram WebApp не обнаружен', 'error');
+                return;
+            }
+
+            const tg = window.Telegram.WebApp;
+
+            // Тест disableVerticalSwipes
+            if (isMethodAvailable(tg, 'disableVerticalSwipes')) {
+                try {
+                    tg.disableVerticalSwipes();
+                    log('✅ disableVerticalSwipes() вызван успешно', 'success');
+                } catch (error) {
+                    log(`❌ Ошибка при вызове disableVerticalSwipes(): ${error.message}`, 'error');
+                }
+            } else {
+                log('⚠️ disableVerticalSwipes() не поддерживается в этой версии', 'warning');
+                log('💡 Используйте CSS fallback: overscroll-behavior: none', 'info');
+            }
+
+            // Тест enableClosingConfirmation
+            if (isMethodAvailable(tg, 'enableClosingConfirmation')) {
+                try {
+                    tg.enableClosingConfirmation();
+                    log('✅ enableClosingConfirmation() вызван успешно', 'success');
+                } catch (error) {
+                    log(`❌ Ошибка при вызове enableClosingConfirmation(): ${error.message}`, 'error');
+                }
+            } else {
+                log('⚠️ enableClosingConfirmation() не поддерживается в этой версии', 'warning');
+            }
+        }
+
+        // Автоматический тест при загрузке
+        window.addEventListener('load', () => {
+            log('🚀 Страница загружена, начинаем автоматический тест...');
+            setTimeout(() => {
+                testApiCompatibility();
+            }, 1000);
+        });
+
+        // Инициализация Telegram WebApp
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            log('✅ Telegram WebApp инициализирован', 'success');
+        }
+    </script>
+</body>
+</html>

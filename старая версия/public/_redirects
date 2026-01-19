@@ -1,0 +1,25 @@
+# Netlify redirects file for SPA routing
+# This ensures that all routes are handled by React Router
+
+# Handle all routes by serving index.html
+/*    /index.html   200
+
+# Optional: Redirect HTTP to HTTPS
+# http://surpriset.netlify.app/*    https://surpriset.netlify.app/:splat    301!
+
+# Optional: Handle API routes if you have any
+# /api/*  https://your-api-domain.com/api/:splat  200
+
+# Handle specific file extensions that should be served directly
+/*.js    /:splat    200
+/*.css   /:splat    200
+/*.png   /:splat    200
+/*.jpg   /:splat    200
+/*.jpeg  /:splat    200
+/*.gif   /:splat    200
+/*.svg   /:splat    200
+/*.ico   /:splat    200
+/*.woff  /:splat    200
+/*.woff2 /:splat    200
+/*.ttf   /:splat    200
+/*.eot   /:splat    200

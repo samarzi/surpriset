@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест категорий</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .category-item {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Тест системы категорий</h1>
+        
+        <div id="status"></div>
+        
+        <div>
+            <h3>Добавить новую категорию</h3>
+            <input type="text" id="categoryName" placeholder="Название категории">
+            <input type="text" id="categoryDescription" placeholder="Описание">
+            <button onclick="addCategory()">Добавить</button>
+        </div>
+        
+        <div>
+            <h3>Список категорий</h3>
+            <button onclick="loadCategories()">Обновить список</button>
+            <div id="categoriesList"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
+        
+        // Получаем переменные из localStorage или используем тестовые
+        const supabaseUrl = localStorage.getItem('supabaseUrl') || 'YOUR_SUPABASE_URL';
+        const supabaseKey = localStorage.getItem('supabaseKey') || 'YOUR_SUPABASE_ANON_KEY';
+        
+        if (supabaseUrl === 'YOUR_SUPABASE_URL') {
+            document.getElementById('status').innerHTML = `
+                <div class="error">
+                    <strong>Настройка подключения:</strong><br>
+                    Откройте консоль браузера (F12) и выполните:<br>
+                    <code>
+                    localStorage.setItem('supabaseUrl', 'ваш_supabase_url');<br>
+                    localStorage.setItem('supabaseKey', 'ваш_supabase_anon_key');<br>
+                    </code>
+                    Затем обновите страницу.
+                </div>
+            `;
+        }
+        
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        window.loadCategories = async function() {
+            try {
+                document.getElementById('status').innerHTML = '<div>Загрузка категорий...</div>';
+                
+                const { data, error } = await supabase
+                    .from('product_categories')
+                    .select('*')
+                    .order('name');
+                
+                if (error) {
+                    throw error;
+                }
+                
+                const categoriesHtml = data.map(category => `
+                    <div class="category-item">
+                        <strong>${category.name}</strong>
+                        ${category.description ? `<br><small>${category.description}</small>` : ''}
+                        <br><small>ID: ${category.id}</small>
+                        <button onclick="deleteCategory('${category.id}', '${category.name}')">Удалить</button>
+                    </div>
+                `).join('');
+                
+                document.getElementById('categoriesList').innerHTML = categoriesHtml || '<p>Категории не найдены</p>';
+                document.getElementById('status').innerHTML = `<div class="success">Загружено ${data.length} категорий</div>`;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки категорий:', error);
+                document.getElementById('status').innerHTML = `<div class="error">Ошибка: ${error.message}</div>`;
+            }
+        };
+        
+        window.addCategory = async function() {
+            const name = document.getElementById('categoryName').value.trim();
+            const description = document.getElementById('categoryDescription').value.trim();
+            
+            if (!name) {
+                document.getElementById('status').innerHTML = '<div class="error">Введите название категории</div>';
+                return;
+            }
+            
+            try {
+                document.getElementById('status').innerHTML = '<div>Добавление категории...</div>';
+                
+                const { data, error } = await supabase
+                    .from('product_categories')
+                    .insert([{
+                        name: name,
+                        description: description || null
+                    }])
+                    .select()
+                    .single();
+                
+                if (error) {
+                    throw error;
+                }
+                
+                document.getElementById('categoryName').value = '';
+                document.getElementById('categoryDescription').value = '';
+                document.getElementById('status').innerHTML = '<div class="success">Категория добавлена успешно!</div>';
+                
+                // Обновляем список
+                loadCategories();
+                
+            } catch (error) {
+                console.error('Ошибка добавления категории:', error);
+                let errorMessage = error.message;
+                if (error.code === '23505') {
+                    errorMessage = 'Категория с таким названием уже существует';
+                }
+                document.getElementById('status').innerHTML = `<div class="error">Ошибка: ${errorMessage}</div>`;
+            }
+        };
+        
+        window.deleteCategory = async function(id, name) {
+            if (!confirm(`Удалить категорию "${name}"?`)) {
+                return;
+            }
+            
+            try {
+                document.getElementById('status').innerHTML = '<div>Удаление категории...</div>';
+                
+                const { error } = await supabase
+                    .from('product_categories')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                document.getElementById('status').innerHTML = '<div class="success">Категория удалена успешно!</div>';
+                
+                // Обновляем список
+                loadCategories();
+                
+            } catch (error) {
+                console.error('Ошибка удаления категории:', error);
+                document.getElementById('status').innerHTML = `<div class="error">Ошибка: ${error.message}</div>`;
+            }
+        };
+        
+        // Загружаем категории при загрузке страницы
+        if (supabaseUrl !== 'YOUR_SUPABASE_URL') {
+            loadCategories();
+        }
+    </script>
+</body>
+</html>

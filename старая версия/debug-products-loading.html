@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Диагностика загрузки товаров</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .product-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+        }
+        
+        .product-image {
+            aspect-ratio: 3/4;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .product-price {
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Диагностика загрузки товаров</h1>
+        
+        <div id="status" class="status loading">
+            Инициализация...
+        </div>
+        
+        <div>
+            <button class="btn" onclick="testConnection()">Тест подключения</button>
+            <button class="btn" onclick="loadProducts()">Загрузить товары</button>
+            <button class="btn" onclick="clearLog()">Очистить лог</button>
+        </div>
+        
+        <div class="log" id="log">
+            Лог диагностики...\n
+        </div>
+        
+        <div id="products-container">
+            <h3>Загруженные товары:</h3>
+            <div id="products-grid" class="product-grid">
+                <!-- Товары будут загружены сюда -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        let logElement = document.getElementById('log');
+        let statusElement = document.getElementById('status');
+        let productsGrid = document.getElementById('products-grid');
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+        
+        function setStatus(message, type = 'loading') {
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+        
+        function clearLog() {
+            logElement.textContent = 'Лог очищен...\n';
+        }
+        
+        // Проверяем переменные окружения
+        function checkEnvironment() {
+            log('🔧 Проверка переменных окружения...');
+            
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+            
+            if (!supabaseUrl) {
+                log('❌ VITE_SUPABASE_URL не найден');
+                return false;
+            }
+            
+            if (!supabaseKey) {
+                log('❌ VITE_SUPABASE_ANON_KEY не найден');
+                return false;
+            }
+            
+            log(`✅ VITE_SUPABASE_URL: ${supabaseUrl}`);
+            log(`✅ VITE_SUPABASE_ANON_KEY: ${supabaseKey.substring(0, 20)}...`);
+            
+            return true;
+        }
+        
+        // Тест подключения к Supabase
+        async function testConnection() {
+            log('🔌 Тестирование подключения к Supabase...');
+            setStatus('Тестирование подключения...', 'loading');
+            
+            if (!checkEnvironment()) {
+                setStatus('Ошибка: переменные окружения не настроены', 'error');
+                return;
+            }
+            
+            try {
+                // Импортируем Supabase клиент
+                const { createClient } = await import('@supabase/supabase-js');
+                
+                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+                
+                const supabase = createClient(supabaseUrl, supabaseKey);
+                
+                log('📡 Выполняем тестовый запрос...');
+                
+                // Простой тест подключения
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    log(`❌ Ошибка подключения: ${error.message}`);
+                    setStatus(`Ошибка подключения: ${error.message}`, 'error');
+                    return;
+                }
+                
+                log('✅ Подключение к Supabase успешно!');
+                setStatus('Подключение успешно!', 'success');
+                
+            } catch (error) {
+                log(`❌ Критическая ошибка: ${error.message}`);
+                setStatus(`Критическая ошибка: ${error.message}`, 'error');
+            }
+        }
+        
+        // Загрузка товаров
+        async function loadProducts() {
+            log('📦 Загрузка товаров...');
+            setStatus('Загрузка товаров...', 'loading');
+            
+            try {
+                const { createClient } = await import('@supabase/supabase-js');
+                
+                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+                
+                const supabase = createClient(supabaseUrl, supabaseKey);
+                
+                log('🔍 Выполняем запрос товаров...');
+                
+                const { data: products, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+                
+                if (error) {
+                    log(`❌ Ошибка загрузки товаров: ${error.message}`);
+                    setStatus(`Ошибка загрузки: ${error.message}`, 'error');
+                    return;
+                }
+                
+                if (!products || products.length === 0) {
+                    log('⚠️ Товары не найдены в базе данных');
+                    setStatus('Товары не найдены', 'error');
+                    productsGrid.innerHTML = '<p>Товары не найдены в базе данных</p>';
+                    return;
+                }
+                
+                log(`✅ Загружено товаров: ${products.length}`);
+                setStatus(`Загружено товаров: ${products.length}`, 'success');
+                
+                // Отображаем товары
+                displayProducts(products);
+                
+            } catch (error) {
+                log(`❌ Критическая ошибка при загрузке: ${error.message}`);
+                setStatus(`Критическая ошибка: ${error.message}`, 'error');
+            }
+        }
+        
+        function displayProducts(products) {
+            productsGrid.innerHTML = '';
+            
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                
+                productCard.innerHTML = `
+                    <div class="product-image">
+                        ${product.images && product.images.length > 0 ? 'IMG' : 'NO IMG'}
+                    </div>
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-price">${product.price} ₽</div>
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        Статус: ${product.status}<br>
+                        Тип: ${product.type}<br>
+                        Теги: ${product.tags ? product.tags.join(', ') : 'нет'}
+                    </div>
+                `;
+                
+                productsGrid.appendChild(productCard);
+            });
+        }
+        
+        // Глобальные функции для кнопок
+        window.testConnection = testConnection;
+        window.loadProducts = loadProducts;
+        window.clearLog = clearLog;
+        
+        // Автоматический тест при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Диагностика запущена');
+            setTimeout(testConnection, 1000);
+        });
+    </script>
+</body>
+</html>

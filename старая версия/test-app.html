@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест приложения</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background: #007bff;
+            color: white;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #console {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+        }
+        .log-error {
+            color: #dc3545;
+        }
+        .log-success {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Диагностика приложения SurpriSet</h1>
+    
+    <div id="status" class="status info">
+        <strong>Статус:</strong> Проверка...
+    </div>
+
+    <div>
+        <button onclick="checkServer()">Проверить сервер</button>
+        <button onclick="checkApp()">Проверить приложение</button>
+        <button onclick="openApp()">Открыть приложение</button>
+        <button onclick="clearConsole()">Очистить консоль</button>
+    </div>
+
+    <div id="console"></div>
+
+    <script>
+        const consoleDiv = document.getElementById('console');
+        const statusDiv = document.getElementById('status');
+
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleDiv.appendChild(entry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function setStatus(message, type) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = `<strong>Статус:</strong> ${message}`;
+        }
+
+        function clearConsole() {
+            consoleDiv.innerHTML = '';
+            log('Консоль очищена', 'info');
+        }
+
+        async function checkServer() {
+            log('Проверка сервера на http://localhost:3000...', 'info');
+            try {
+                const response = await fetch('http://localhost:3000');
+                if (response.ok) {
+                    log('✅ Сервер работает!', 'success');
+                    setStatus('Сервер работает нормально', 'success');
+                    const html = await response.text();
+                    log(`Получен HTML (${html.length} символов)`, 'success');
+                } else {
+                    log(`❌ Сервер вернул статус: ${response.status}`, 'error');
+                    setStatus(`Ошибка сервера: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Ошибка подключения: ${error.message}`, 'error');
+                setStatus('Сервер не отвечает', 'error');
+            }
+        }
+
+        async function checkApp() {
+            log('Проверка приложения...', 'info');
+            try {
+                // Проверяем основные ресурсы
+                const checks = [
+                    { url: 'http://localhost:3000/', name: 'Главная страница' },
+                    { url: 'http://localhost:3000/@vite/client', name: 'Vite client' },
+                ];
+
+                for (const check of checks) {
+                    try {
+                        const response = await fetch(check.url);
+                        if (response.ok) {
+                            log(`✅ ${check.name}: OK`, 'success');
+                        } else {
+                            log(`⚠️ ${check.name}: ${response.status}`, 'error');
+                        }
+                    } catch (error) {
+                        log(`❌ ${check.name}: ${error.message}`, 'error');
+                    }
+                }
+
+                setStatus('Проверка завершена', 'info');
+            } catch (error) {
+                log(`❌ Ошибка проверки: ${error.message}`, 'error');
+                setStatus('Ошибка проверки', 'error');
+            }
+        }
+
+        function openApp() {
+            log('Открытие приложения в новой вкладке...', 'info');
+            window.open('http://localhost:3000', '_blank');
+        }
+
+        // Автоматическая проверка при загрузке
+        window.addEventListener('load', () => {
+            log('Страница диагностики загружена', 'info');
+            setTimeout(checkServer, 500);
+        });
+    </script>
+</body>
+</html>

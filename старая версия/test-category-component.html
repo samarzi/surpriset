@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест компонента CategoryManager</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 5px 5px 0;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .category-list {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .category-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Тест компонента CategoryManager</h1>
+        
+        <div id="status"></div>
+        
+        <!-- Симуляция формы продукта -->
+        <div class="form-group">
+            <h3>Форма создания товара (симуляция)</h3>
+            <label for="productName">Название товара:</label>
+            <input type="text" id="productName" placeholder="Введите название товара">
+            
+            <label for="productPrice">Цена:</label>
+            <input type="number" id="productPrice" placeholder="1000">
+            
+            <!-- Селектор категории -->
+            <label for="categorySelect">Категория:</label>
+            <select id="categorySelect">
+                <option value="">Загрузка категорий...</option>
+            </select>
+            
+            <button onclick="simulateProductCreation()">Создать товар (симуляция)</button>
+        </div>
+        
+        <!-- Управление категориями -->
+        <div class="form-group">
+            <h3>Управление категориями</h3>
+            <label for="newCategoryName">Название новой категории:</label>
+            <input type="text" id="newCategoryName" placeholder="Введите название">
+            
+            <label for="newCategoryDescription">Описание:</label>
+            <input type="text" id="newCategoryDescription" placeholder="Введите описание">
+            
+            <button onclick="addCategory()">Добавить категорию</button>
+            <button onclick="loadCategories()">Обновить список</button>
+        </div>
+        
+        <!-- Список категорий -->
+        <div class="category-list">
+            <h4>Список категорий:</h4>
+            <div id="categoriesList">Загрузка...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
+        
+        // Конфигурация (замените на ваши данные)
+        const supabaseUrl = localStorage.getItem('supabaseUrl') || prompt('Введите Supabase URL:');
+        const supabaseKey = localStorage.getItem('supabaseKey') || prompt('Введите Supabase Anon Key:');
+        
+        if (supabaseUrl && supabaseKey) {
+            localStorage.setItem('supabaseUrl', supabaseUrl);
+            localStorage.setItem('supabaseKey', supabaseKey);
+        }
+        
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        let categories = [];
+        let selectedCategoryId = null;
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // Загрузка категорий
+        window.loadCategories = async function() {
+            try {
+                showStatus('Загрузка категорий...', 'info');
+                
+                const { data, error } = await supabase
+                    .from('product_categories')
+                    .select('*')
+                    .order('name');
+                
+                if (error) throw error;
+                
+                categories = data || [];
+                updateCategorySelect();
+                updateCategoryList();
+                
+                showStatus(`Загружено ${categories.length} категорий`, 'success');
+                
+            } catch (error) {
+                console.error('Ошибка загрузки категорий:', error);
+                showStatus(`Ошибка загрузки: ${error.message}`, 'error');
+            }
+        };
+        
+        // Обновление селектора категорий
+        function updateCategorySelect() {
+            const select = document.getElementById('categorySelect');
+            select.innerHTML = '<option value="">Без категории</option>';
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                if (category.id === selectedCategoryId) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+            
+            // Обработчик изменения
+            select.onchange = function() {
+                selectedCategoryId = this.value || null;
+                showStatus(`Выбрана категория: ${this.options[this.selectedIndex].text}`, 'info');
+            };
+        }
+        
+        // Обновление списка категорий
+        function updateCategoryList() {
+            const listDiv = document.getElementById('categoriesList');
+            
+            if (categories.length === 0) {
+                listDiv.innerHTML = '<p>Категории не найдены</p>';
+                return;
+            }
+            
+            listDiv.innerHTML = categories.map(category => `
+                <div class="category-item">
+                    <div>
+                        <strong>${category.name}</strong>
+                        ${category.description ? `<br><small>${category.description}</small>` : ''}
+                        <br><small>ID: ${category.id.slice(0, 8)}...</small>
+                    </div>
+                    <button onclick="deleteCategory('${category.id}', '${category.name}')" style="background: #dc3545;">
+                        Удалить
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        // Добавление категории
+        window.addCategory = async function() {
+            const name = document.getElementById('newCategoryName').value.trim();
+            const description = document.getElementById('newCategoryDescription').value.trim();
+            
+            if (!name) {
+                showStatus('Введите название категории', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('Добавление категории...', 'info');
+                
+                const { data, error } = await supabase
+                    .from('product_categories')
+                    .insert([{
+                        name: name,
+                        description: description || null
+                    }])
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                
+                // Очищаем поля
+                document.getElementById('newCategoryName').value = '';
+                document.getElementById('newCategoryDescription').value = '';
+                
+                showStatus(`Категория "${name}" добавлена успешно!`, 'success');
+                
+                // Обновляем список
+                await loadCategories();
+                
+            } catch (error) {
+                console.error('Ошибка добавления категории:', error);
+                let errorMessage = error.message;
+                if (error.code === '23505') {
+                    errorMessage = 'Категория с таким названием уже существует';
+                }
+                showStatus(`Ошибка добавления: ${errorMessage}`, 'error');
+            }
+        };
+        
+        // Удаление категории
+        window.deleteCategory = async function(id, name) {
+            if (!confirm(`Удалить категорию "${name}"?`)) {
+                return;
+            }
+            
+            try {
+                showStatus('Удаление категории...', 'info');
+                
+                const { error } = await supabase
+                    .from('product_categories')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                showStatus(`Категория "${name}" удалена успешно!`, 'success');
+                
+                // Если удаленная категория была выбрана, сбрасываем выбор
+                if (selectedCategoryId === id) {
+                    selectedCategoryId = null;
+                }
+                
+                // Обновляем список
+                await loadCategories();
+                
+            } catch (error) {
+                console.error('Ошибка удаления категории:', error);
+                showStatus(`Ошибка удаления: ${error.message}`, 'error');
+            }
+        };
+        
+        // Симуляция создания товара
+        window.simulateProductCreation = function() {
+            const productName = document.getElementById('productName').value.trim();
+            const productPrice = document.getElementById('productPrice').value;
+            
+            if (!productName || !productPrice) {
+                showStatus('Заполните название и цену товара', 'error');
+                return;
+            }
+            
+            const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
+            const categoryName = selectedCategory ? selectedCategory.name : 'Без категории';
+            
+            showStatus(`Товар создан: "${productName}" (${productPrice} руб.) в категории "${categoryName}"`, 'success');
+            
+            // Очищаем форму
+            document.getElementById('productName').value = '';
+            document.getElementById('productPrice').value = '';
+        };
+        
+        // Инициализация
+        if (supabaseUrl && supabaseKey) {
+            loadCategories();
+        } else {
+            showStatus('Не удалось получить данные для подключения к Supabase', 'error');
+        }
+    </script>
+</body>
+</html>

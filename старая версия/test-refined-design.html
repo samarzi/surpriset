@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Lime Design - SurpriseT (как в старой версии)</title>
+    <style>
+        /* Dark Lime Design System - как в старой версии */
+        :root {
+            --color-primary: #a3e635;
+            --color-primary-hover: #84cc16;
+            --color-primary-light: #365314;
+            
+            --color-background: #0f172a;
+            --color-background-muted: #1e293b;
+            --color-background-elevated: #334155;
+            --color-background-soft: #475569;
+            --color-background-glass: rgba(15, 23, 42, 0.95);
+            
+            --color-foreground: #f8fafc;
+            --color-muted: #94a3b8;
+            --color-border: #475569;
+            --color-border-light: #334155;
+            
+            --size-2: 8px;
+            --size-3: 12px;
+            --size-4: 16px;
+            --size-6: 24px;
+            
+            --radius-lg: 12px;
+            --radius-2xl: 20px;
+            --radius-full: 9999px;
+            
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.7), 0 4px 6px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.8), 0 10px 10px rgba(0, 0, 0, 0.6);
+            --shadow-primary: 0 4px 14px rgba(163, 230, 53, 0.4);
+            
+            --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, #84cc16 100%);
+            
+            --transition-normal: 300ms ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-background);
+            color: var(--color-foreground);
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--size-4);
+        }
+        
+        /* Header */
+        .header {
+            background: var(--color-background-glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--color-border-light);
+            padding: var(--size-4) 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+        
+        .nav {
+            display: flex;
+            gap: var(--size-6);
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            color: var(--color-foreground);
+            padding: var(--size-2) var(--size-4);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-normal);
+            font-weight: 600;
+        }
+        
+        .nav-link:hover {
+            background: var(--color-background-elevated);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .nav-link.active {
+            background: var(--gradient-primary);
+            color: black;
+            font-weight: 700;
+            box-shadow: var(--shadow-primary);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--size-2);
+            padding: var(--size-3) var(--size-6);
+            border: none;
+            border-radius: var(--radius-lg);
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+        }
+        
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: black;
+            box-shadow: var(--shadow-primary);
+        }
+        
+        .btn-primary:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: var(--color-background-elevated);
+            color: var(--color-foreground);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-background-soft);
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--color-background-elevated);
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-normal);
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-xl);
+            transform: translateY(-4px);
+            border-color: var(--color-primary);
+        }
+        
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--size-6);
+            margin: var(--size-6) 0;
+        }
+        
+        .product-card {
+            background: var(--color-background-elevated);
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: all var(--transition-normal);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--color-primary);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: var(--color-background-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-muted);
+            transition: all var(--transition-normal);
+        }
+        
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
+        
+        .product-content {
+            padding: var(--size-4);
+        }
+        
+        .product-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: var(--size-2);
+            color: var(--color-foreground);
+        }
+        
+        .product-price {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-foreground);
+            margin-bottom: var(--size-4);
+        }
+        
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .product-cart-btn {
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: var(--radius-lg);
+            padding: var(--size-2);
+            color: black;
+            font-weight: 700;
+            transition: all var(--transition-normal);
+            cursor: pointer;
+            box-shadow: var(--shadow-primary);
+        }
+        
+        .product-cart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* Mobile Navigation */
+        .mobile-nav {
+            position: fixed;
+            bottom: var(--size-4);
+            left: var(--size-4);
+            right: var(--size-4);
+            background: var(--color-background-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: var(--size-3);
+            height: 64px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--size-3);
+            color: var(--color-muted);
+            text-decoration: none;
+            transition: all var(--transition-normal);
+            border-radius: var(--radius-lg);
+            min-width: 44px;
+            min-height: 44px;
+            background: transparent;
+            position: relative;
+            font-weight: 600;
+        }
+        
+        .nav-item.active {
+            color: black;
+            background: var(--gradient-primary);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-primary);
+            font-weight: 700;
+        }
+        
+        .nav-item:hover:not(.active) {
+            color: var(--color-primary);
+            background: var(--color-background-elevated);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .cart-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: var(--radius-full);
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            box-shadow: var(--shadow-md);
+            border: 2px solid var(--color-background);
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, rgba(163, 230, 53, 0.2) 0%, rgba(107, 114, 128, 0.1) 50%, rgba(251, 191, 36, 0.1) 100%);
+            padding: var(--size-6) 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: var(--size-4);
+            color: var(--color-foreground);
+        }
+        
+        .hero p {
+            font-size: 20px;
+            color: var(--color-muted);
+            margin-bottom: var(--size-6);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav {
+                display: none;
+            }
+            
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--size-3);
+            }
+            
+            .hero h1 {
+                font-size: 32px;
+            }
+            
+            .hero p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">SurpriseT</div>
+                <nav class="nav">
+                    <a href="#" class="nav-link active">Главная</a>
+                    <a href="#" class="nav-link">Каталог</a>
+                    <a href="#" class="nav-link">Собрать набор</a>
+                </nav>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-secondary">Профиль</button>
+                    <button class="btn btn-primary">Корзина</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Темный дизайн как в старой версии</h1>
+            <p>Яркие лаймовые акценты на темном фоне с упрощенной навигацией</p>
+            <button class="btn btn-primary">Посмотреть каталог</button>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container">
+        <h2 style="margin: 48px 0 24px 0; font-size: 32px; text-align: center;">Популярные товары</h2>
+        
+        <div class="product-grid">
+            <div class="product-card">
+                <div class="product-image">Изображение товара</div>
+                <div class="product-content">
+                    <h3 class="product-title">Подарочный набор "Сладкие мечты"</h3>
+                    <div class="product-footer">
+                        <div class="product-price">2 490 ₽</div>
+                        <button class="product-cart-btn">🛒</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <div class="product-image">Изображение товара</div>
+                <div class="product-content">
+                    <h3 class="product-title">Набор для чаепития "Уютный вечер"</h3>
+                    <div class="product-footer">
+                        <div class="product-price">1 890 ₽</div>
+                        <button class="product-cart-btn">🛒</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <div class="product-image">Изображение товара</div>
+                <div class="product-content">
+                    <h3 class="product-title">Подарок для любимой "Нежность"</h3>
+                    <div class="product-footer">
+                        <div class="product-price">3 290 ₽</div>
+                        <button class="product-cart-btn">🛒</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <div class="product-image">Изображение товара</div>
+                <div class="product-content">
+                    <h3 class="product-title">Корпоративный подарок "Успех"</h3>
+                    <div class="product-footer">
+                        <div class="product-price">4 590 ₽</div>
+                        <button class="product-cart-btn">🛒</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin: 48px 0;">
+            <div class="card" style="padding: 24px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 16px;">🌙 Темная тема</h3>
+                <p style="color: var(--color-muted);">Воссоздан темный дизайн из старой версии с яркими лаймовыми акцентами на темном фоне.</p>
+            </div>
+            
+            <div class="card" style="padding: 24px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 16px;">📱 Только иконки</h3>
+                <p style="color: var(--color-muted);">Мобильная навигация содержит только иконки без текста, как вы и просили.</p>
+            </div>
+            
+            <div class="card" style="padding: 24px;">
+                <h3 style="color: var(--color-primary); margin-bottom: 16px;">⚡ Яркие акценты</h3>
+                <p style="color: var(--color-muted);">Лаймовые кнопки и элементы выделяются на темном фоне, создавая контрастный дизайн.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <a href="#" class="nav-item active" title="Главная">🏠</a>
+        <a href="#" class="nav-item" title="Каталог">📦</a>
+        <a href="#" class="nav-item" title="Собрать набор">🎁</a>
+        <a href="#" class="nav-item" title="Корзина">
+            🛒
+            <span class="cart-badge">3</span>
+        </a>
+        <a href="#" class="nav-item" title="Профиль">👤</a>
+    </nav>
+
+    <div style="height: 100px;"></div> <!-- Spacer for mobile nav -->
+</body>
+</html>
