@@ -15,6 +15,10 @@ const ALLOWED_HOSTS = [
   'market.yandex.ru'
 ];
 
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({ ok: true });
+});
+
 app.get('/api/proxy', async (req, res) => {
   try {
     const targetUrl = req.query.url;
@@ -46,8 +50,14 @@ app.get('/api/proxy', async (req, res) => {
     res.setHeader('Content-Type', contentType || 'application/json');
 
     const data = await response.text();
-    res.status(200).send(data);
+
+    if (!response.ok) {
+      return res.status(response.status).send(data || JSON.stringify({ error: `upstream HTTP ${response.status}` }));
+    }
+
+    return res.status(200).send(data);
   } catch (e) {
+    console.error('Proxy error:', e);
     res.status(500).json({ error: e?.message || 'proxy failed' });
   }
 });
