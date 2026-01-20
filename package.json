@@ -29,6 +29,7 @@
   "dependencies": {
     "express": "^4.19.2",
     "node-fetch": "^3.3.2",
+    "vite": "^7.1.2",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-label": "^2.1.8",
@@ -66,7 +67,6 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5.9.2",
-    "vite": "^7.1.2"
+    "typescript": "^5.9.2"
   }
 }
