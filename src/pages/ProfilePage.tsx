@@ -233,8 +233,8 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-modern mobile-safe-area">
       <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-3 sm:py-6 lg:py-10">
-        {/* Mobile Version - Ultra Compact Profile */}
-        <div className="max-w-xs mx-auto space-y-3 md:hidden">
+        {/* Unified Profile Design */}
+        <div className="max-w-xs mx-auto space-y-3">
           
           {/* Profile Header - Ultra Compact */}
           <Card className="mobile-compact-card">
@@ -376,124 +376,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* Desktop Version - Optimized Layout */}
-        <div className="hidden md:block max-w-4xl mx-auto md:pt-24">
-          {/* Profile Header - Desktop */}
-          <Card className="mb-8">
-            <CardContent className="p-8">
-              <div className="flex flex-col items-center text-center gap-6">
-                {/* Avatar */}
-                <div className="w-24 h-24 rounded-full bg-brand-gradient flex items-center justify-center text-3xl font-bold text-black shadow-lg">
-                  {user.first_name?.[0]?.toUpperCase() || 'U'}
-                </div>
-                
-                {/* User Info */}
-                <div>
-                  <div className="flex items-center justify-center gap-3 mb-2">
-                    <h1 className="text-3xl font-bold">{user.first_name} {user.last_name}</h1>
-                    {isAdmin && (
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/20 rounded-full">
-                        <Shield className="w-5 h-5" />
-                        <span className="text-sm font-medium">Администратор</span>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-lg text-muted-foreground">
-                    {user.username ? `@${user.username}` : `ID: ${user.id}`}
-                  </p>
-                </div>
-
-                {/* Stats */}
-                <div className="flex gap-12">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary">
-                      {statsLoading ? '...' : stats.ordersCount}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Заказов</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary">
-                      {statsLoading ? '...' : formatPrice(stats.totalSpent)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Потрачено</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary">
-                      {statsLoading ? '...' : stats.likesCount}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Избранное</div>
-                  </div>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions - Desktop Horizontal Layout */}
-          <div className="grid grid-cols-3 gap-4 mb-8 mt-2">
-            <Card className="group cursor-pointer hover:border-primary/40 transition-all">
-              <CardContent className="p-8 flex items-center justify-center">
-                <Link to="/likes" className="flex flex-col items-center text-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-red-100 dark:bg-red-900/20 flex items-center justify-center flex-shrink-0 group-hover:bg-red-200 dark:group-hover:bg-red-900/30 transition-colors">
-                    <Heart className="w-7 h-7 text-red-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-1">Избранное</h3>
-                    <p className="text-sm text-muted-foreground">Сохраненные товары</p>
-                  </div>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="group cursor-pointer hover:border-primary/40 transition-all">
-              <CardContent className="p-8 flex items-center justify-center">
-                <Link to="/my-orders" className="flex flex-col items-center text-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/30 transition-colors">
-                    <ShoppingBag className="w-7 h-7 text-blue-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-1">Мои заказы</h3>
-                    <p className="text-sm text-muted-foreground">История покупок</p>
-                  </div>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="group cursor-pointer hover:border-primary/40 transition-all">
-              <CardContent className="p-8 flex items-center justify-center">
-                <Link to="/profile/settings" className="flex flex-col items-center text-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/30 transition-colors">
-                    <Settings className="w-7 h-7 text-purple-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-1">Настройки</h3>
-                    <p className="text-sm text-muted-foreground">Управление профилем</p>
-                  </div>
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Admin Panel - Desktop */}
-          {isAdmin && !loading && (
-            <Card className="border-primary/20">
-              <CardContent className="p-8 flex items-center">
-                <div className="flex items-center justify-center gap-4 w-full">
-                  <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center">
-                    <Shield className="w-7 h-7 text-primary" />
-                  </div>
-                  <div className="flex-1 text-center">
-                    <h3 className="text-xl font-bold">Панель администратора</h3>
-                    <p className="text-sm text-muted-foreground">Управление магазином и контентом</p>
-                  </div>
-                  <Button asChild size="lg" className="px-8">
-                    <Link to="/admin">Открыть панель</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
