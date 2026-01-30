@@ -99,8 +99,8 @@ export default function FiltersPage() {
     setFilters(resetFilters);
     console.log('Filters reset:', resetFilters);
     
-    // Force navigation
-    window.location.href = '/catalog';
+    // Navigate using React Router instead of window.location
+    navigate('/catalog');
   };
 
   return (
@@ -396,7 +396,7 @@ export default function FiltersPage() {
             <Button
               onClick={() => {
                 console.log('Catalog button clicked!');
-                window.location.href = '/catalog';
+                navigate('/catalog');
               }}
               className="w-full h-12 rounded-xl font-semibold bg-primary hover:bg-primary/90 text-base relative z-50"
             >

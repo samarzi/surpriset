@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { adminService } from '@/lib/database'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { User, Heart, ShoppingBag, Settings, Shield, Gift, LogOut } from 'lucide-react'
 import { getTelegramWebApp } from '@/utils/telegram'
 import { mediumHaptic } from '@/utils/haptics'
@@ -12,6 +12,7 @@ import { useBrowserAuth } from '@/hooks/useBrowserAuth'
 import AuthGuard from '@/components/AuthGuard'
 
 export default function ProfilePage() {
+  const navigate = useNavigate()
   const [telegramUser, setTelegramUser] = useState<any>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -366,7 +367,7 @@ export default function ProfilePage() {
                 onClick={() => {
                   localStorage.removeItem('browser_user')
                   localStorage.removeItem('browser_password')
-                  window.location.href = '/login'
+                  navigate('/login')
                 }}
               >
                 <LogOut className="w-4 h-4 mr-2" />
