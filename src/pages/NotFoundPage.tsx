@@ -42,9 +42,6 @@ export default function NotFoundPage() {
               <Link to="/catalog">Каталог</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/bundle-builder">Собрать набор</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
               <Link to="/cart">Корзина</Link>
             </Button>
           </div>

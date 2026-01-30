@@ -137,10 +137,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [state]);
 
   const addItem = (product: Product, quantity = 1) => {
-    // КРИТИЧНО: В корзину можно добавлять только наборы (type='bundle')
-    if (product.type !== 'bundle') {
-      throw new Error('В корзину можно добавлять только наборы. Отдельные товары добавляйте в набор.');
-    }
     dispatch({ type: 'ADD_ITEM', payload: { product, quantity } });
   };
 

@@ -188,51 +188,62 @@ export function CategoryManager({
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <div className="w-full">
+      <div className="w-full md:pt-24">
+      <Card className="border-0 shadow-md w-full">
+        <CardHeader className="border-b border-gray-200 dark:border-gray-800 p-3">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FolderOpen className="h-5 w-5 text-blue-500" />
-            Управление категориями
+            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <FolderOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">Управление категориями</h3>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-normal">Организация товаров</p>
+            </div>
           </div>
           <Button
             onClick={() => setIsAdding(true)}
             size="sm"
-            className="gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+            className="gap-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-black shadow-md h-8 text-xs px-3"
           >
-            <Plus className="h-4 w-4" />
-            Добавить
+            <Plus className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Добавить</span>
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="!p-4 pt-4 space-y-2">
         {/* Форма добавления новой категории */}
         {isAdding && (
-          <Card className="border-dashed border-blue-200 bg-blue-50/50">
-            <CardContent className="p-4 space-y-3">
+          <Card className="border-2 border-dashed border-blue-300 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10">
+            <CardContent className="!p-4 space-y-2">
               <div>
-                <Label htmlFor="new-category-name">Название категории</Label>
+                <Label htmlFor="new-category-name" className="text-xs font-medium">Название категории</Label>
                 <Input
                   id="new-category-name"
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
-                  placeholder="Введите название категории"
-                  className="mt-1"
+                  placeholder="Введите название"
+                  className="mt-1 h-9 text-sm"
                 />
               </div>
               <div>
-                <Label htmlFor="new-category-description">Описание (необязательно)</Label>
+                <Label htmlFor="new-category-description" className="text-xs font-medium">Описание (необязательно)</Label>
                 <Input
                   id="new-category-description"
                   value={newCategoryDescription}
                   onChange={(e) => setNewCategoryDescription(e.target.value)}
-                  placeholder="Введите описание категории"
-                  className="mt-1"
+                  placeholder="Введите описание"
+                  className="mt-1 h-9 text-sm"
                 />
               </div>
-              <div className="flex gap-2">
-                <Button onClick={handleAddCategory} size="sm" className="gap-2 bg-green-500 hover:bg-green-600 text-white">
-                  <Check className="h-4 w-4" />
+              <div className="flex gap-1.5 pt-0.5">
+                <Button 
+                  onClick={handleAddCategory} 
+                  size="sm" 
+                  className="gap-1.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-black h-8 text-xs px-3"
+                >
+                  <Check className="h-3.5 w-3.5" />
                   Сохранить
                 </Button>
                 <Button 
@@ -243,9 +254,9 @@ export function CategoryManager({
                   }} 
                   variant="outline" 
                   size="sm"
-                  className="gap-2"
+                  className="gap-1.5 h-8 text-xs px-3"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                   Отмена
                 </Button>
               </div>
@@ -254,82 +265,85 @@ export function CategoryManager({
         )}
 
         {/* Список категорий */}
-        <div className="space-y-2">
+        <div className="space-y-1.5 mt-2">
           {categories.length === 0 ? (
             <div className="text-center py-8">
-              <FolderOpen className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-muted-foreground">Категории не найдены</p>
-              <p className="text-sm text-muted-foreground mt-1">Создайте первую категорию для организации товаров</p>
+              <FolderOpen className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+              <p className="text-gray-600 dark:text-gray-400 font-medium text-sm">Категории не найдены</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-500 mt-1">Создайте первую категорию</p>
             </div>
           ) : (
             categories.map((category) => (
-              <Card key={category.id} className="border hover:border-blue-200 transition-colors">
-                <CardContent className="p-4">
+              <Card key={category.id} className="border-0 shadow-sm hover:shadow-md transition-all group">
+                <CardContent className="!p-4 flex items-center">
                   {editingId === category.id ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <div>
-                        <Label>Название категории</Label>
+                        <Label className="text-xs font-medium">Название категории</Label>
                         <Input
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
-                          className="mt-1"
+                          className="mt-1 h-9 text-sm"
                         />
                       </div>
                       <div>
-                        <Label>Описание</Label>
+                        <Label className="text-xs font-medium">Описание</Label>
                         <Input
                           value={editDescription}
                           onChange={(e) => setEditDescription(e.target.value)}
-                          className="mt-1"
+                          className="mt-1 h-9 text-sm"
                         />
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1.5">
                         <Button 
                           onClick={() => handleEditCategory(category.id)} 
                           size="sm"
-                          className="gap-2 bg-green-500 hover:bg-green-600 text-white"
+                          className="gap-1.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-black h-8 text-xs px-3"
                         >
-                          <Check className="h-4 w-4" />
+                          <Check className="h-3.5 w-3.5" />
                           Сохранить
                         </Button>
-                        <Button onClick={cancelEdit} variant="outline" size="sm" className="gap-2">
-                          <X className="h-4 w-4" />
+                        <Button onClick={cancelEdit} variant="outline" size="sm" className="gap-1.5 h-8 text-xs px-3">
+                          <X className="h-3.5 w-3.5" />
                           Отмена
                         </Button>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-medium text-blue-700">{category.name}</h3>
-                          <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-600">
-                            ID: {category.id.slice(0, 8)}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <div className="p-1 bg-blue-100 dark:bg-blue-900/30 rounded-md">
+                            <FolderOpen className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <h3 className="font-semibold text-xs text-gray-900 dark:text-white truncate">{category.name}</h3>
+                          <Badge variant="secondary" className="text-[9px] bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 h-4 px-1.5">
+                            {category.id.slice(0, 8)}
                           </Badge>
                         </div>
                         {category.description && (
-                          <p className="text-sm text-muted-foreground">{category.description}</p>
+                          <p className="text-[10px] text-gray-600 dark:text-gray-400 ml-6 truncate">{category.description}</p>
                         )}
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Создана: {new Date(category.created_at).toLocaleDateString('ru-RU')}
+                        <p className="text-[9px] text-gray-500 dark:text-gray-500 mt-0.5 ml-6">
+                          {new Date(category.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
                         </p>
                       </div>
-                      <div className="flex gap-1 ml-4">
+                      <div className="flex gap-0.5 flex-shrink-0">
                         <Button
                           onClick={() => startEdit(category)}
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                          className="h-7 w-7 p-0 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600"
                         >
-                          <Edit2 className="h-4 w-4" />
+                          <Edit2 className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           onClick={() => handleDeleteCategory(category.id)}
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -341,5 +355,7 @@ export function CategoryManager({
         </div>
       </CardContent>
     </Card>
+      </div>
+    </div>
   );
 }

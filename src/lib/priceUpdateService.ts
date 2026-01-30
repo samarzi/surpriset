@@ -61,10 +61,14 @@ export class PriceUpdateService {
       // Парсим актуальные данные с маркетплейса
       const marketplaceData = await marketplaceParser.parseProduct(product.source_url);
       
-      // Применяем наценку 20%
-      const newPrice = Math.round(marketplaceData.price * 1.2);
+      // Используем индивидуальную наценку товара или 20% по умолчанию
+      const marginPercent = product.margin_percent ?? 20;
+      const marginMultiplier = 1 + (marginPercent / 100);
+      
+      // Применяем наценку
+      const newPrice = Math.round(marketplaceData.price * marginMultiplier);
       const newOriginalPrice = marketplaceData.old_price 
-        ? Math.round(marketplaceData.old_price * 1.2) 
+        ? Math.round(marketplaceData.old_price * marginMultiplier) 
         : null;
       
       // Проверяем, изменилась ли цена
@@ -83,11 +87,12 @@ export class PriceUpdateService {
           console.log(`   Stock: ${product.status} → ${marketplaceData.in_stock ? 'in_stock' : 'out_of_stock'}`);
         }
         
-        // Обновляем товар
+        // Обновляем товар (наценка не меняется, только цена)
         await productService.update(product.id, {
           price: newPrice,
           original_price: newOriginalPrice,
           status: marketplaceData.in_stock ? 'in_stock' : 'out_of_stock',
+          margin_percent: marginPercent, // Сохраняем текущую наценку
           last_price_check_at: new Date().toISOString()
         } as any);
       } else {

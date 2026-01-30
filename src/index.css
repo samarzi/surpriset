@@ -47,6 +47,36 @@
     --input: 220 13% 12%;
     --ring: 75 100% 50%;
   }
+
+  /* Глобальная блокировка скролла для модальных окон */
+  .modal-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100vh !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+  }
+
+  /* Центрированное модальное окно */
+  .modal-centered {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 9999 !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+    padding: 1rem !important;
+    min-height: 100vh !important;
+    box-sizing: border-box !important;
+  }
 }
 
 @layer base {
@@ -72,7 +102,12 @@
     padding: 0 !important;
     overflow: hidden !important; /* КРИТИЧНО: Полностью блокируем скролл на уровне html/body */
     height: 100vh !important;
-    width: 100vw !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    width: 100dvw !important;
+    max-width: 100dvw !important;
+    width: var(--tg-viewport-width, 100dvw) !important;
+    max-width: var(--tg-viewport-width, 100dvw) !important;
     position: fixed !important; /* Фиксируем, чтобы предотвратить любой скролл */
     top: 0 !important;
     left: 0 !important;
@@ -87,7 +122,12 @@
   body.telegram-fullscreen {
     overflow: hidden !important;
     position: fixed !important;
-    width: 100vw !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    width: 100dvw !important;
+    max-width: 100dvw !important;
+    width: var(--tg-viewport-width, 100dvw) !important;
+    max-width: var(--tg-viewport-width, 100dvw) !important;
     height: 100vh !important;
     top: 0 !important;
     left: 0 !important;
@@ -102,7 +142,12 @@
   #root {
     margin: 0 !important;
     padding: 0 !important;
-    width: 100vw !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    width: 100dvw !important;
+    max-width: 100dvw !important;
+    width: var(--tg-viewport-width, 100dvw) !important;
+    max-width: var(--tg-viewport-width, 100dvw) !important;
     height: 100vh !important;
   }
   
@@ -144,7 +189,12 @@
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important; /* Блокируем любой скролл на body */
-    width: 100vw !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    width: 100dvw !important;
+    max-width: 100dvw !important;
+    width: var(--tg-viewport-width, 100dvw) !important;
+    max-width: var(--tg-viewport-width, 100dvw) !important;
     height: 100vh !important;
     height: var(--tg-viewport-height, 100vh) !important;
   }
@@ -158,6 +208,7 @@
     bottom: 0 !important;
     width: 100% !important;
     height: 100% !important;
+    max-width: 100dvw !important;
     overflow: hidden !important; /* #root НЕ скроллится */
   }
   
@@ -168,7 +219,10 @@
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
-    width: 100vw !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    width: 100dvw !important;
+    max-width: 100dvw !important;
     height: 100vh !important;
     height: var(--tg-viewport-height, 100vh) !important;
     
@@ -195,6 +249,7 @@
     height: var(--tg-viewport-height, 100vh) !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+    max-width: 100dvw !important;
     position: relative !important;
   }
   
@@ -279,7 +334,12 @@
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
-    width: 100vw !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    width: 100dvw !important;
+    max-width: 100dvw !important;
+    width: var(--tg-viewport-width, 100dvw) !important;
+    max-width: var(--tg-viewport-width, 100dvw) !important;
     height: 100vh !important;
     height: var(--tg-viewport-height, 100vh) !important;
     overflow: hidden !important; /* Контейнер НЕ скроллится */
@@ -293,6 +353,8 @@
     height: 100% !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+    max-width: 100dvw !important;
+    max-width: var(--tg-viewport-width, 100dvw) !important;
     overscroll-behavior: contain none !important;
     -webkit-overflow-scrolling: touch !important;
   }
@@ -324,63 +386,68 @@
   }
   
   /* Brand Gradient Utilities */
-  .bg-brand-gradient {
-    background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 50%, #85F000 100%);
+  /* Принудительно черный цвет текста для любых элементов внутри градиентных фонов */
+  .bg-brand-gradient, 
+  .bg-brand-gradient-light, 
+  .bg-brand-gradient-dark {
+    /* Цвет текста для самого элемента с градиентом */
     color: #000000 !important;
   }
-  
+
+  /* Принудительно черный цвет текста для любых элементов внутри градиентных фонов, включая кнопки, span, p, div */
   .bg-brand-gradient *,
-  .bg-brand-gradient button,
-  .bg-brand-gradient .btn,
-  .bg-brand-gradient span,
-  .bg-brand-gradient p,
-  .bg-brand-gradient div {
-    color: #000000 !important;
-  }
-  
-  .bg-brand-gradient-light {
-    background: linear-gradient(135deg, #E6FFA3 0%, #C6FF00 50%, #A8FF00 100%);
-    color: #000000 !important;
-  }
-  
   .bg-brand-gradient-light *,
+  .bg-brand-gradient-dark *,
   .bg-brand-gradient-light button,
   .bg-brand-gradient-light .btn,
   .bg-brand-gradient-light span,
   .bg-brand-gradient-light p,
-  .bg-brand-gradient-light div {
-    color: #000000 !important;
-  }
-  
-  .bg-brand-gradient-dark {
-    background: linear-gradient(135deg, #9AFF00 0%, #85F000 50%, #6ED400 100%);
-    color: #000000 !important;
-  }
-  
-  .bg-brand-gradient-dark *,
+  .bg-brand-gradient-light div,
   .bg-brand-gradient-dark button,
   .bg-brand-gradient-dark .btn,
   .bg-brand-gradient-dark span,
   .bg-brand-gradient-dark p,
-  .bg-brand-gradient-dark div {
+  .bg-brand-gradient-dark div,
+  button.bg-brand-gradient,
+  .btn.bg-brand-gradient,
+  button.bg-brand-gradient-light,
+  .btn.bg-brand-gradient-light,
+  button.bg-brand-gradient-dark,
+  .btn.bg-brand-gradient-dark {
     color: #000000 !important;
+    text-shadow: none !important; /* Убираем возможную тень, которая может имитировать белый */
   }
 
-  /* New Accent Color Gradients */
-  .bg-blue-gradient {
-    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%);
-    color: #FFFFFF !important;
+  /* Для прямых элементов с классом bg-brand-gradient (если они сами являются текстом) */
+  .bg-brand-gradient[class*="text-"] {
+    color: #000000 !important;
+    text-shadow: none !important;
+  }
+  .bg-brand-gradient-light[class*="text-"] {
+    color: #000000 !important;
+    text-shadow: none !important;
+  }
+  .bg-brand-gradient-dark[class*="text-"] {
+    color: #000000 !important;
+    text-shadow: none !important;
+  }
   }
 
-  .bg-orange-gradient {
-    background: linear-gradient(135deg, #F97316 0%, #EA580C 50%, #C2410C 100%);
-    color: #FFFFFF !important;
-  }
-
-  .bg-purple-gradient {
-    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 50%, #6B21A8 100%);
-    color: #FFFFFF !important;
-  }
+   /* New Accent Color Gradients */
+   .bg-blue-gradient {
+     background: linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%);
+     color: #000000 !important;
+   }
+ 
+   .bg-orange-gradient {
+     background: linear-gradient(135deg, #F97316 0%, #EA580C 50%, #C2410C 100%);
+     color: #000000 !important;
+   }
+ 
+   .bg-purple-gradient {
+     background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 50%, #6B21A8 100%);
+     color: #000000 !important;
+   }
 
   /* Accent text gradients */
   .text-blue-gradient {
@@ -389,7 +456,7 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-
+  
   .text-orange-gradient {
     background: linear-gradient(135deg, #F97316 0%, #EA580C 50%, #C2410C 100%);
     -webkit-background-clip: text;
@@ -412,7 +479,7 @@
     background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 50%, #85F000 100%) !important;
     color: #000000 !important;
   }
-
+  
   .btn-primary *,
   button[class*="bg-primary"] *,
   [class*="bg-primary"] *,
@@ -438,6 +505,84 @@
   [data-admin] .bg-primary * {
     color: #000000 !important;
   }
+
+  /* Only for gradient buttons with primary background in admin */
+  [data-admin] .bg-gradient-to-r[from-primary],
+  [data-admin] a[class*="from-primary"] {
+    color: #000000 !important;
+  }
+
+  [data-admin] .bg-gradient-to-r[from-primary] *,
+  [data-admin] a[class*="from-primary"] * {
+    color: #000000 !important;
+  }
+  
+  /* Active state overrides for gradient buttons */
+  .bg-brand-gradient:active,
+  .bg-brand-gradient.active,
+  .bg-brand-gradient-light:active,
+  .bg-brand-gradient-light.active,
+  .bg-brand-gradient-dark:active,
+  .bg-brand-gradient-dark.active,
+  .bg-blue-gradient:active,
+  .bg-blue-gradient.active,
+  .bg-orange-gradient:active,
+  .bg-orange-gradient.active,
+  .bg-purple-gradient:active,
+  .bg-purple-gradient.active {
+    color: #000000 !important;
+  }
+  
+  /* Focus and active states for all gradient buttons */
+  .bg-brand-gradient:focus,
+  .bg-blue-gradient:focus,
+  .bg-orange-gradient:focus,
+  .bg-purple-gradient:focus,
+  .bg-gradient-to-r:focus,
+  .bg-gradient-to-l:focus,
+  .bg-gradient-to-t:focus,
+  .bg-gradient-to-b:focus {
+    color: #000000 !important;
+  }
+  
+  /* Override for all button states to ensure black text */
+  button.bg-brand-gradient,
+  button.bg-blue-gradient,
+  button.bg-orange-gradient,
+  button.bg-purple-gradient,
+  .btn.bg-brand-gradient,
+  .btn.bg-blue-gradient,
+  .btn.bg-orange-gradient,
+  .btn.bg-purple-gradient {
+    color: #000000 !important;
+  }
+  
+  button.bg-brand-gradient:active,
+  button.bg-blue-gradient:active,
+  button.bg-orange-gradient:active,
+  button.bg-purple-gradient:active,
+  .btn.bg-brand-gradient:active,
+  .btn.bg-blue-gradient:active,
+  .btn.bg-orange-gradient:active,
+  .btn.bg-purple-gradient:active,
+  button.bg-brand-gradient:focus,
+  button.bg-blue-gradient:focus,
+  button.bg-orange-gradient:focus,
+  button.bg-purple-gradient:focus,
+  .btn.bg-brand-gradient:focus,
+  .btn.bg-blue-gradient:focus,
+  .btn.bg-orange-gradient:focus,
+  .btn.bg-purple-gradient:focus,
+  button.bg-brand-gradient:focus-within,
+  button.bg-blue-gradient:focus-within,
+  button.bg-orange-gradient:focus-within,
+  button.bg-purple-gradient:focus-within,
+  .btn.bg-brand-gradient:focus-within,
+  .btn.bg-blue-gradient:focus-within,
+  .btn.bg-orange-gradient:focus-within,
+  .btn.bg-purple-gradient:focus-within {
+    color: #000000 !important;
+  }
   
   .text-brand-gradient {
     background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 50%, #85F000 100%);
@@ -452,24 +597,24 @@
     background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 100%);
     box-shadow: 0 8px 32px rgba(198, 255, 0, 0.3);
   }
-  
+
   .btn-modern-primary:hover {
     @apply scale-105;
     background: linear-gradient(135deg, #A8FF00 0%, #85F000 100%);
     box-shadow: 0 12px 40px rgba(198, 255, 0, 0.4);
     transform: translateY(-2px) scale(1.05);
   }
-  
+
   .btn-modern-secondary {
     @apply relative overflow-hidden rounded-2xl px-8 py-4 font-semibold border-2 border-primary/20 bg-transparent text-foreground transition-all duration-300;
     backdrop-filter: blur(10px);
   }
-  
+
   .btn-modern-secondary:hover {
     @apply border-primary/40 bg-primary/10 scale-105;
     transform: translateY(-2px) scale(1.05);
   }
-  
+
   /* Modern Input Styles */
   .input-modern {
     @apply rounded-2xl border-2 border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl px-6 py-4 text-foreground placeholder:text-muted-foreground transition-all duration-300;
@@ -478,12 +623,12 @@
   .input-modern:focus {
     @apply border-primary/50 bg-white/80 dark:bg-gray-900/80 outline-none ring-4 ring-primary/20;
   }
-  
+
   /* Floating Animation */
   .float-animation {
     animation: float 6s ease-in-out infinite;
   }
-  
+
   @keyframes float {
     0%, 100% {
       transform: translateY(0px) rotate(0deg);
@@ -492,23 +637,23 @@
       transform: translateY(-20px) rotate(5deg);
     }
   }
-  
+
   /* Glow Effects */
   .glow-brand {
     box-shadow: 0 0 30px rgba(198, 255, 0, 0.3);
   }
-  
+
   .glow-brand-strong {
     box-shadow: 0 0 50px rgba(198, 255, 0, 0.5);
   }
-  
+
   /* Modern Navigation */
   .nav-modern {
     @apply backdrop-blur-xl bg-white/40 dark:bg-gray-900/80 border-b border-gray-200/60 dark:border-gray-700/50;
     margin: 0;
     padding: 0;
   }
-  
+
   /* Убираем фиксированную позицию, оставляем sticky */
   @media (max-width: 768px) {
     .nav-modern {
@@ -533,7 +678,6 @@
       hsl(var(--background)) 100%
     );
   }
-}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -757,7 +901,7 @@ button[class*="w-10 h-10"] > span {
   html, body {
     overflow-x: hidden !important;
     width: 100% !important;
-    max-width: 100vw !important;
+    max-width: 100% !important;
     position: relative !important;
   }
   
@@ -768,13 +912,13 @@ button[class*="w-10 h-10"] > span {
   
   #root {
     width: 100% !important;
-    max-width: 100vw !important;
+    max-width: 100% !important;
     overflow-x: hidden !important;
   }
   
   main {
     width: 100% !important;
-    max-width: 100vw !important;
+    max-width: 100% !important;
     overflow-x: hidden !important;
     padding-bottom: 5rem !important; /* Отступ для навигации */
   }
@@ -839,12 +983,21 @@ button[class*="w-10 h-10"] > span {
   .mobile-nav-safe {
     margin-bottom: 6rem;
   }
-  
-  /* Fix mobile spacing issues - only for mobile screens */
-  @media (max-width: 768px) {
-    main {
-      padding-bottom: 5rem !important; /* Отступ для навигации */
-    }
+
+  /* Hide mobile navigation when filters modal is open - higher specificity */
+  body.filters-modal-open .mobile-nav-container,
+  body.filters-page-open .mobile-nav-container {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(100%) !important;
+    transition: all 0.3s ease !important;
+    pointer-events: none !important;
+  }
+
+  /* Ensure filters modal/page is properly positioned on mobile */
+  body.filters-modal-open,
+  body.filters-page-open {
+    overflow: hidden !important;
   }
 
   /* MOBILE NAV - ALWAYS VISIBLE ON MOBILE - FIXED POSITIONING */
@@ -914,17 +1067,59 @@ button[class*="w-10 h-10"] > span {
       display: flex !important;
       opacity: 1 !important;
       visibility: visible !important;
+      transform: translateY(0) !important;
+      transition: all 0.3s ease !important;
     }
-    
-    /* Add bottom padding to body to prevent overlap */
-    body {
-      padding-bottom: 4rem; /* Отступ для навигации */
+
+    /* Override when filters modal is open */
+    body.filters-modal-open .mobile-nav-container {
+      display: flex !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      transform: translateY(100%) !important;
+      transition: all 0.3s ease !important;
+      pointer-events: none !important;
     }
-    
-    /* Ensure main content has proper spacing */
-    main {
-      padding-bottom: 5rem !important;
+
+    /* Ensure filters modal is properly positioned on mobile */
+    body.filters-modal-open {
+      overflow: hidden !important;
     }
+
+    /* Filters modal mobile fixes */
+    body.filters-modal-open .fixed.inset-0 {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      z-index: 9999 !important;
+    }
+  }
+
+  /* Filters modal global fixes */
+  .filters-modal-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1rem !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+  }
+
+  .filters-modal-content {
+    background: hsl(var(--background)) !important;
+    border-radius: 1.5rem !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    width: 100% !important;
+    max-width: 32rem !important;
+    max-height: 85vh !important;
+    overflow: hidden !important;
+    position: relative !important;
+    z-index: 10000 !important;
   }
 
   /* Force logo to be in one line */
@@ -1393,4 +1588,197 @@ main {
 .telegram-fullscreen .page-content {
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
+}
+
+/* Compact checkout layout for iPhone 11 Pro and similar widths */
+@media (max-width: 390px) {
+  .checkout-compact {
+    font-size: 14px;
+  }
+
+  .checkout-compact .checkout-header {
+    margin-bottom: 0.75rem;
+  }
+
+  .checkout-compact .checkout-title {
+    font-size: 1.125rem;
+    line-height: 1.4;
+  }
+
+  .checkout-compact .checkout-step-card {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .checkout-compact .checkout-step-label {
+    font-size: 0.65rem;
+  }
+
+  .checkout-compact .checkout-section {
+    padding: 0.75rem;
+  }
+
+  .checkout-compact .checkout-card {
+    padding: 0.65rem;
+  }
+
+  .checkout-compact .checkout-card-image {
+    width: 52px;
+    height: 52px;
+  }
+
+  .checkout-compact .checkout-card-title {
+    font-size: 0.75rem;
+  }
+
+  .checkout-compact .checkout-card-meta {
+    font-size: 0.65rem;
+  }
+
+  .checkout-compact .checkout-price {
+    font-size: 0.8rem;
+  }
+
+  .checkout-compact .checkout-action {
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .checkout-compact .checkout-action button {
+    height: 2.25rem;
+    font-size: 0.7rem;
+    width: 100%;
+  }
+
+  .checkout-compact .checkout-summary {
+    padding: 0.75rem;
+  }
+}
+
+
+
+/* ============================================
+   ГЛОБАЛЬНОЕ ИСПРАВЛЕНИЕ ВЕРХНИХ ОТСТУПОВ
+   Добавляем "воздушное" пространство сверху для всех контейнеров
+   ============================================ */
+
+/* Добавляем верхний отступ для всех основных контейнеров с контентом */
+main > div > div.space-y-3,
+main > div > div.space-y-4,
+main > div > div.space-y-6,
+main > div > .space-y-2,
+main > div > .space-y-3,
+main > div > .space-y-4 {
+  padding-top: 1rem !important;
+}
+
+/* Для мобильных устройств - меньший отступ */
+@media (max-width: 768px) {
+  main > div > div.space-y-3,
+  main > div > div.space-y-4,
+  main > div > div.space-y-6,
+  main > div > .space-y-2,
+  main > div > .space-y-3,
+  main > div > .space-y-4 {
+    padding-top: 0.75rem !important;
+  }
+}
+
+/* Добавляем верхний отступ для контейнеров внутри страниц */
+.container > .space-y-3:first-child,
+.container > .space-y-4:first-child,
+.container > .space-y-6:first-child {
+  padding-top: 1rem !important;
+}
+
+/* Для grid контейнеров */
+.container > .grid:first-child,
+main > div > .grid:first-child {
+  margin-top: 1rem !important;
+}
+
+@media (max-width: 768px) {
+  .container > .grid:first-child,
+  main > div > .grid:first-child {
+    margin-top: 0.75rem !important;
+  }
+}
+
+/* ============================================
+   ТОЧЕЧНОЕ ИСПРАВЛЕНИЕ ВЕРТИКАЛЬНОГО ЦЕНТРИРОВАНИЯ
+   Только для элементов из админ панели и профиля
+   ============================================ */
+
+/* Исправляем строки списков в админ панели (категории, товары и т.д.) */
+[class*="admin"] [class*="Card"] > div:first-child,
+[data-admin] [class*="Card"] > div:first-child {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 60px !important;
+}
+
+/* Исправляем карточки профиля (Избранное, Мои заказы, Настройки) */
+[class*="profile"] [class*="Card"] > div,
+[data-profile] [class*="Card"] > div {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 80px !important;
+}
+
+/* Исправляем карточки с иконками слева */
+[class*="Card"] > div > div.flex.items-center,
+[class*="Card"] > div > div.flex.items-start {
+  align-items: center !important;
+}
+
+/* Исправляем вложенные flex контейнеры с gap */
+[class*="Card"] [class*="flex items-center gap"],
+[class*="Card"] [class*="flex items-start gap"] {
+  align-items: center !important;
+}
+
+/* КРИТИЧНОЕ ИСПРАВЛЕНИЕ: Принудительно черный текст для ЛЮБЫХ элементов на фоне брендового градиента */
+.bg-brand-gradient,
+.bg-brand-gradient-light,
+.bg-brand-gradient-dark,
+[class*="bg-brand-gradient"],
+.bg-primary,
+[class*="bg-primary"],
+[class*="bg-primary"] button,
+[class*="bg-primary"] .btn,
+[class*="bg-brand-gradient"] *,
+[class*="bg-brand-gradient"] button,
+[class*="bg-brand-gradient"] .btn,
+[class*="bg-brand-gradient"] span,
+[class*="bg-brand-gradient"] p,
+[class*="bg-brand-gradient"] div,
+[class*="bg-brand-gradient"] h1,
+[class*="bg-brand-gradient"] h2,
+[class*="bg-brand-gradient"] h3,
+[class*="bg-brand-gradient"] h4,
+[class*="bg-brand-gradient"] h5,
+[class*="bg-brand-gradient"] h6,
+[class*="bg-brand-gradient"] a,
+[class*="bg-brand-gradient"] label,
+[class*="bg-brand-gradient"] strong,
+[class*="bg-brand-gradient"] b,
+[class*="bg-brand-gradient"] em,
+[class*="bg-brand-gradient"] i,
+[class*="bg-brand-gradient"] .text-white,
+[class*="bg-brand-gradient"] .text-gray-100,
+[class*="bg-brand-gradient"] .text-gray-50,
+[class*="bg-brand-gradient"] [class*="text-"],
+[class*="bg-brand-gradient"] [class*="text-white"] {
+  color: #000000 !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+/* Особое правило для админ-панели */
+.admin-panel .bg-brand-gradient,
+.admin-panel .bg-brand-gradient-light,
+.admin-panel .bg-brand-gradient-dark,
+.admin-panel [class*="bg-brand-gradient"] *,
+.admin-panel [class*="bg-brand-gradient"] button,
+.admin-panel [class*="bg-brand-gradient"] .btn {
+  color: #000000 !important;
 }

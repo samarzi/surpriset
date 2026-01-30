@@ -43,12 +43,35 @@ interface TelegramWindow extends Window {
   }
 }
 
+let supportsDisableVerticalSwipes: boolean | null = null
+let supportsRequestFullscreen: boolean | null = null
+let supportsEnableClosingConfirmation: boolean | null = null
+let supportsExitFullscreen: boolean | null = null
+
 /**
  * Получает объект Telegram WebApp
  */
 export function getTelegramWebApp(): TelegramWebApp | null {
   if (typeof window === 'undefined') return null
   return (window as TelegramWindow).Telegram?.WebApp || null
+}
+
+function setViewportVars(tg?: TelegramWebApp | null) {
+  if (typeof window === 'undefined') return
+
+  const vv = window.visualViewport
+  const width = Math.round((vv?.width ?? window.innerWidth) || 0)
+  const height = Math.round((vv?.height ?? window.innerHeight) || 0)
+
+  if (width > 0) {
+    document.documentElement.style.setProperty('--tg-viewport-width', `${width}px`)
+  }
+  if (height > 0) {
+    document.documentElement.style.setProperty('--tg-viewport-height-js', `${height}px`)
+  }
+  if (tg?.viewportHeight) {
+    document.documentElement.style.setProperty('--tg-viewport-height', `${tg.viewportHeight}px`)
+  }
 }
 
 /**
@@ -71,18 +94,26 @@ export function enableFullscreenMode(): boolean {
     // КРИТИЧНО: Отключаем вертикальные свайпы (новый API v7.0+)
     if (tg.disableVerticalSwipes) {
       try {
-        tg.disableVerticalSwipes()
+        if (supportsDisableVerticalSwipes !== false) {
+          tg.disableVerticalSwipes()
+          supportsDisableVerticalSwipes = true
+        }
       } catch (e) {
         // API не поддерживается в текущей версии
+        supportsDisableVerticalSwipes = false
       }
     }
     
     // Используем новый API для полноэкранного режима (v7.0+)
     if (tg.requestFullscreen) {
       try {
-        tg.requestFullscreen()
+        if (supportsRequestFullscreen !== false) {
+          tg.requestFullscreen()
+          supportsRequestFullscreen = true
+        }
       } catch (e) {
         // API не поддерживается в текущей версии
+        supportsRequestFullscreen = false
       }
     }
     
@@ -92,9 +123,13 @@ export function enableFullscreenMode(): boolean {
     // Включаем подтверждение закрытия (v6.1+)
     if (tg.enableClosingConfirmation) {
       try {
-        tg.enableClosingConfirmation()
+        if (supportsEnableClosingConfirmation !== false) {
+          tg.enableClosingConfirmation()
+          supportsEnableClosingConfirmation = true
+        }
       } catch (e) {
         // API не поддерживается в текущей версии
+        supportsEnableClosingConfirmation = false
       }
     }
     
@@ -118,6 +153,7 @@ export function enableFullscreenMode(): boolean {
         if (tg.viewportHeight) {
           document.documentElement.style.setProperty('--tg-viewport-height', `${tg.viewportHeight}px`)
         }
+        setViewportVars(tg)
         // Повторно применяем защиту от свайпа
         document.body.style.overscrollBehavior = 'none'
       })
@@ -191,7 +227,10 @@ export function initTelegramWebApp(): void {
     
     // Блокируем скролл немедленно
     blockBodyScroll()
-    
+
+    // КРИТИЧНО: Фиксируем реальный размер viewport (Telegram часто даёт кривой vw)
+    setViewportVars(tg)
+
     // Инициализируем WebApp
     tg.ready()
     
@@ -316,13 +355,23 @@ export function initTelegramWebApp(): void {
     if (tg.viewportHeight) {
       document.documentElement.style.setProperty('--tg-viewport-height', `${tg.viewportHeight}px`)
     }
+
+    setViewportVars(tg)
+
+    const onResize = () => setViewportVars(tg)
+    window.addEventListener('resize', onResize)
+    window.visualViewport?.addEventListener('resize', onResize)
     
     // Добавляем класс для полноэкранного режима
     document.body.classList.add('telegram-fullscreen')
     document.body.classList.add('telegram-env')
     document.documentElement.classList.add('telegram-fullscreen')
     document.documentElement.classList.add('telegram-env')
-    
+
+    // Обновляем переменные ещё раз после применения классов
+    setTimeout(() => setViewportVars(tg), 0)
+    setTimeout(() => setViewportVars(tg), 250)
+
   } catch (error) {
     console.error('Failed to initialize Telegram WebApp:', error)
   }
@@ -339,18 +388,26 @@ export function maintainFullscreenMode(): void {
     // КРИТИЧНО: Отключаем вертикальные свайпы (v7.0+)
     if (tg.disableVerticalSwipes) {
       try {
-        tg.disableVerticalSwipes()
+        if (supportsDisableVerticalSwipes !== false) {
+          tg.disableVerticalSwipes()
+          supportsDisableVerticalSwipes = true
+        }
       } catch (e) {
         // API не поддерживается
+        supportsDisableVerticalSwipes = false
       }
     }
     
     // Повторно включаем полноэкранный режим (v7.0+)
     if (tg.requestFullscreen) {
       try {
-        tg.requestFullscreen()
+        if (supportsRequestFullscreen !== false) {
+          tg.requestFullscreen()
+          supportsRequestFullscreen = true
+        }
       } catch (e) {
         // API не поддерживается
+        supportsRequestFullscreen = false
       }
     }
     
@@ -360,9 +417,13 @@ export function maintainFullscreenMode(): void {
     // КРИТИЧНО: Повторно включаем подтверждение закрытия (v6.1+)
     if (tg.enableClosingConfirmation) {
       try {
-        tg.enableClosingConfirmation()
+        if (supportsEnableClosingConfirmation !== false) {
+          tg.enableClosingConfirmation()
+          supportsEnableClosingConfirmation = true
+        }
       } catch (e) {
         // API не поддерживается
+        supportsEnableClosingConfirmation = false
       }
     }
     
@@ -403,7 +464,14 @@ export function cleanupTelegramWebApp(): void {
     
     // Выходим из полноэкранного режима
     if (tg.exitFullscreen) {
-      tg.exitFullscreen()
+      if (supportsExitFullscreen !== false) {
+        try {
+          tg.exitFullscreen()
+          supportsExitFullscreen = true
+        } catch (e) {
+          supportsExitFullscreen = false
+        }
+      }
     }
     
     // Удаляем классы

@@ -11,16 +11,16 @@ export interface Product {
   price: number;
   original_price?: number | null; // Для скидок (snake_case для DB)
   images: string[]; // Массив URL изображений
-  tags: string[]; // Максимум 3 тега
+  category_ids?: string[]; // Массив ID категорий (максимум 3)
   status: ProductStatus;
   type: ProductType;
   is_featured: boolean; // snake_case для DB
   likes_count: number; // Количество лайков
   specifications?: Record<string, string> | null;
-  category_id?: string | null; // Связь с категорией
   is_imported?: boolean; // Импортирован с маркетплейса
   source_url?: string | null; // URL источника (только для системы)
   last_price_check_at?: string | null; // Последняя проверка цены
+  margin_percent?: number | null; // Наценка в процентах (0-100)
   created_at: string; // snake_case для DB
   updated_at: string; // snake_case для DB
 }
@@ -100,6 +100,8 @@ export interface Order {
   total: number;
   status: OrderStatus;
   type: OrderType;
+  packaging_id?: string | null; // ID выбранной упаковки
+  assembly_service_price?: number; // Стоимость услуги сборки
   created_at: string; // snake_case для DB
   updated_at: string; // snake_case для DB
 }
@@ -124,6 +126,50 @@ export interface Banner {
   created_at: string; // snake_case для DB
 }
 
+// Packaging Types
+export interface Packaging {
+  id: string;
+  name: string;
+  price: number;
+  width?: number | null; // ширина в см
+  height?: number | null; // высота в см
+  depth?: number | null; // глубина в см
+  image_url?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Service Category Types
+export interface ServiceCategory {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Additional Service Types
+export interface AdditionalService {
+  id: string;
+  category_id: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  image_url?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Order Service (junction table)
+export interface OrderService {
+  id: string;
+  order_id: string;
+  service_id: string;
+  price: number;
+  created_at: string;
+}
+
 // Filter Types
 export interface ProductFilters {
   search?: string;
@@ -132,6 +178,7 @@ export interface ProductFilters {
   tags?: string[];
   status?: ProductStatus[];
   type?: ProductType[];
+  categories?: string[];
   sortBy?: 'price_asc' | 'price_desc' | 'newest' | 'popular';
   limit?: number;
   offset?: number;

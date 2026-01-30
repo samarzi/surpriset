@@ -6,7 +6,6 @@ import { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
 import { useLikes } from '@/contexts/LikesContext';
-import { useCustomBundle } from '@/contexts/CustomBundleContext';
 import { toast } from 'sonner';
 import { mediumHaptic, successHaptic } from '@/utils/haptics';
 
@@ -25,7 +24,6 @@ export function ProductCard({
 }: ProductCardProps) {
   const { addItem } = useCart();
   const { toggleLike, isLiked } = useLikes();
-  const { addProduct } = useCustomBundle();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -174,7 +172,7 @@ export function ProductCard({
 
       {/* Content */}
       <Link to={`/product/${product.id}`} className="block">
-        <CardContent className="p-2 sm:p-3">
+        <CardContent className="!p-3 sm:!p-4">
           <div className="space-y-1 sm:space-y-1.5">
             {/* Product Name */}
             <h3 className="font-semibold text-[11px] sm:text-xs lg:text-sm line-clamp-2 group-hover:text-primary transition-colors leading-tight min-h-[2.2em]">
@@ -183,8 +181,8 @@ export function ProductCard({
 
             {/* Price */}
             <div className="flex items-center justify-between pt-1">
-              <div className="flex items-center gap-1">
-                <span className="text-xs sm:text-sm font-bold text-foreground">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm sm:text-base lg:text-lg font-bold text-foreground">
                   {formatPrice(product.price)}
                 </span>
                 {product.original_price && product.original_price > product.price && (
@@ -194,12 +192,6 @@ export function ProductCard({
                 )}
               </div>
               
-              {/* Discount Badge */}
-              {product.original_price && product.original_price > product.price && (
-                <span className="bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-1 sm:px-1.5 py-0.5 rounded-full text-[9px] sm:text-xs font-semibold">
-                  -{Math.round((1 - product.price / product.original_price) * 100)}%
-                </span>
-              )}
             </div>
           </div>
         </CardContent>
@@ -207,21 +199,8 @@ export function ProductCard({
 
       {/* Action Buttons */}
       <div className="hidden sm:flex absolute bottom-4 right-4 gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-        {/* Для товаров - только кнопка "В набор" если товар в наличии */}
-        {showAddToBundle && product.type === 'product' && product.status === 'in_stock' && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleAddToBundle}
-            className="backdrop-blur-xl w-8 h-8 p-0 no-lift important-button bg-orange-500/20 border-orange-300 hover:bg-orange-500 hover:text-white"
-            title="Добавить в набор"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        )}
-        
-        {/* Для наборов - кнопка "В корзину" */}
-        {showAddToCart && product.type === 'bundle' && (
+        {/* Все товары и наборы - кнопка "В корзину" */}
+        {showAddToCart && product.status === 'in_stock' && (
           <Button
             size="sm"
             onClick={handleAddToCart}
@@ -236,29 +215,8 @@ export function ProductCard({
 
       {/* Mobile Action Buttons */}
       <div className="sm:hidden px-2 pb-1.5 flex gap-1">
-        {/* Для товаров - только кнопка "В набор" если товар в наличии */}
-        {showAddToBundle && product.type === 'product' && product.status === 'in_stock' && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleAddToBundle}
-            className="flex-1 text-[10px] py-1 h-6 rounded-lg bg-gradient-to-r from-purple-500/10 to-purple-500/20 hover:from-purple-500/20 hover:to-purple-500/30 border-purple-500/30 no-lift important-button text-purple-700"
-            title="Добавить в набор"
-          >
-            <Plus className="h-2.5 w-2.5 mr-1" />
-            <span>В набор</span>
-          </Button>
-        )}
-
-        {/* Показываем сообщение о недоступности для товаров не в наличии */}
-        {showAddToBundle && product.type === 'product' && product.status !== 'in_stock' && (
-          <div className="flex-1 text-[10px] py-1 h-6 rounded-lg bg-red-100 border border-red-200 flex items-center justify-center">
-            <span className="text-red-600 font-medium">Недоступно</span>
-          </div>
-        )}
-
-        {/* Для наборов - кнопка "В корзину" */}
-        {showAddToCart && product.type === 'bundle' && (
+        {/* Все товары и наборы - кнопка "В корзину" */}
+        {showAddToCart && product.status === 'in_stock' && (
           <Button
             size="sm"
             onClick={handleAddToCart}
@@ -267,8 +225,15 @@ export function ProductCard({
             title={isAvailable ? 'В корзину' : 'Недоступно'}
           >
             <ShoppingCart className="h-2.5 w-2.5 mr-1" />
-            <span>{isAvailable ? 'В корзину' : 'Недоступно'}</span>
+            <span>В корзину</span>
           </Button>
+        )}
+
+        {/* Показываем сообщение о недоступности для товаров не в наличии */}
+        {product.status !== 'in_stock' && (
+          <div className="flex-1 text-[10px] py-1 h-6 rounded-lg bg-red-100 border border-red-200 flex items-center justify-center">
+            <span className="text-red-600 font-medium">Недоступно</span>
+          </div>
         )}
       </div>
     </Card>

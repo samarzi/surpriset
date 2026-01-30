@@ -159,6 +159,28 @@ export const productService = {
 
     if (error) throw error
     return data as Product[]
+  },
+
+  // Get products by categories
+  async getByCategories(categoryIds: string[]) {
+    if (categoryIds.length === 0) {
+      return { data: [], error: null }
+    }
+
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .overlaps('category_ids', categoryIds)
+      .eq('status', 'in_stock')
+      .not('tags', 'cs', ARCHIVE_TAG_FILTER)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching products by categories:', error)
+      return { data: null, error }
+    }
+
+    return { data: data as Product[], error: null }
   }
 }
 
@@ -571,5 +593,283 @@ export const likesService = {
 
     if (error) throw error
     return data as Product[]
+  }
+}
+
+
+// Packaging operations
+export const packagingService = {
+  // Get all packaging options
+  async getAll(activeOnly = false) {
+    let query = supabase.from('packaging').select('*').order('name')
+    
+    if (activeOnly) {
+      query = query.eq('is_active', true)
+    }
+    
+    const { data, error } = await query
+    if (error) throw error
+    return data || []
+  },
+
+  // Get packaging by ID
+  async getById(id: string) {
+    const { data, error } = await supabase
+      .from('packaging')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Create packaging
+  async create(packaging: {
+    name: string
+    price: number
+    width?: number
+    height?: number
+    depth?: number
+    image_url?: string
+    is_active?: boolean
+  }) {
+    const { data, error } = await supabase
+      .from('packaging')
+      .insert(packaging)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Update packaging
+  async update(id: string, updates: Partial<{
+    name: string
+    price: number
+    width?: number
+    height?: number
+    depth?: number
+    image_url?: string
+    is_active: boolean
+  }>) {
+    const { data, error } = await supabase
+      .from('packaging')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Delete packaging
+  async delete(id: string) {
+    const { error } = await supabase
+      .from('packaging')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  }
+}
+
+// Service Category operations
+export const serviceCategoryService = {
+  // Get all service categories
+  async getAll() {
+    const { data, error } = await supabase
+      .from('service_categories')
+      .select('*')
+      .order('name')
+    
+    if (error) throw error
+    return data || []
+  },
+
+  // Get category by ID
+  async getById(id: string) {
+    const { data, error } = await supabase
+      .from('service_categories')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Create category
+  async create(name: string) {
+    const { data, error} = await supabase
+      .from('service_categories')
+      .insert({ name })
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Update category
+  async update(id: string, name: string) {
+    const { data, error } = await supabase
+      .from('service_categories')
+      .update({ name, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Delete category
+  async delete(id: string) {
+    const { error } = await supabase
+      .from('service_categories')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  }
+}
+
+// Additional Services operations
+export const additionalServiceService = {
+  // Get all services
+  async getAll(activeOnly = false) {
+    let query = supabase
+      .from('additional_services')
+      .select('*, service_categories(name)')
+      .order('name')
+    
+    if (activeOnly) {
+      query = query.eq('is_active', true)
+    }
+    
+    const { data, error } = await query
+    if (error) throw error
+    return data || []
+  },
+
+  // Get services by category
+  async getByCategory(categoryId: string, activeOnly = false) {
+    let query = supabase
+      .from('additional_services')
+      .select('*')
+      .eq('category_id', categoryId)
+      .order('name')
+    
+    if (activeOnly) {
+      query = query.eq('is_active', true)
+    }
+    
+    const { data, error } = await query
+    if (error) throw error
+    return data || []
+  },
+
+  // Get service by ID
+  async getById(id: string) {
+    const { data, error } = await supabase
+      .from('additional_services')
+      .select('*, service_categories(name)')
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Create service
+  async create(service: {
+    category_id: string
+    name: string
+    description?: string
+    price: number
+    image_url?: string
+    is_active?: boolean
+  }) {
+    const { data, error } = await supabase
+      .from('additional_services')
+      .insert(service)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Update service
+  async update(id: string, updates: Partial<{
+    category_id: string
+    name: string
+    description?: string
+    price: number
+    image_url?: string
+    is_active: boolean
+  }>) {
+    const { data, error } = await supabase
+      .from('additional_services')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Delete service
+  async delete(id: string) {
+    const { error } = await supabase
+      .from('additional_services')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  }
+}
+
+// Order Services operations (junction table)
+export const orderServiceService = {
+  // Create order service
+  async create(orderService: {
+    order_id: string
+    service_id: string
+    price: number
+  }) {
+    const { data, error } = await supabase
+      .from('order_services')
+      .insert(orderService)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Get services for an order
+  async getByOrderId(orderId: string) {
+    const { data, error } = await supabase
+      .from('order_services')
+      .select('*, additional_services(*)')
+      .eq('order_id', orderId)
+    
+    if (error) throw error
+    return data || []
+  },
+
+  // Delete order service
+  async delete(id: string) {
+    const { error } = await supabase
+      .from('order_services')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
   }
 }

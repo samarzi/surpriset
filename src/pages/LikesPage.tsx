@@ -84,7 +84,7 @@ export default function LikesPage() {
           {/* Stats */}
           <div className="grid gap-2 sm:gap-4 md:grid-cols-3 mb-4 sm:mb-8">
             <Card>
-              <CardContent className="p-3 sm:p-4">
+              <CardContent className="!p-4 sm:!p-5">
                 <div className="flex items-center gap-3">
                   <Heart className="h-5 w-5 text-red-500" />
                   <div>
@@ -96,7 +96,7 @@ export default function LikesPage() {
             </Card>
             
             <Card>
-              <CardContent className="p-3 sm:p-4">
+              <CardContent className="!p-4 sm:!p-5">
                 <div className="flex items-center gap-3">
                   <ShoppingBag className="h-5 w-5 text-blue-500" />
                   <div>
@@ -110,7 +110,7 @@ export default function LikesPage() {
             </Card>
             
             <Card>
-              <CardContent className="p-3 sm:p-4">
+              <CardContent className="!p-4 sm:!p-5">
                 <div className="flex items-center gap-3">
                   <div className="h-5 w-5 bg-primary rounded-full"></div>
                   <div>

@@ -104,7 +104,7 @@ export function BannerCarousel({ banners, loading }: BannerCarouselProps) {
 
   if (loading && banners.length === 0) {
     return (
-      <section className="py-4 sm:py-6">
+      <section className="py-2 sm:py-3">
         <div className="container px-3 sm:px-4 max-w-[1400px]">
           <div className="h-48 sm:h-[320px] rounded-xl bg-muted animate-pulse" />
         </div>
@@ -161,7 +161,7 @@ export function BannerCarousel({ banners, loading }: BannerCarouselProps) {
 
   return (
     <section 
-      className="py-4 sm:py-6"
+      className="py-2 sm:py-3"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}

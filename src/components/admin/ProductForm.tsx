@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus, Package, Download, RefreshCw, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,11 +8,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ImageUpload } from '@/components/ui/image-upload';
+import { ImageUploadCompact } from '@/components/ui/image-upload-compact';
 import { productService } from '@/lib/database';
-import { Product, ProductStatus, ProductType } from '@/types';
+import { Product, ProductStatus, ProductType, ProductCategory } from '@/types';
 import { marketplaceParser, detectMarketplace } from '@/lib/marketplaceParsers';
 import { isTelegramWebApp } from '@/utils/telegram';
+import { supabase } from '@/lib/supabase';
 
 interface ProductFormProps {
   product?: Product | null;
@@ -28,22 +29,53 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     price: '',
     original_price: '',
     images: [] as string[],
-    tags: [] as string[],
+    category_ids: [] as string[], // Изменено с tags на category_ids
     status: 'in_stock' as ProductStatus,
     type: 'product' as ProductType,
     is_featured: false,
     specifications: {} as Record<string, string>,
     is_imported: false,
-    source_url: ''
+    source_url: '',
+    margin_percent: 20 // Наценка по умолчанию 20%
   });
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [newTag, setNewTag] = useState('');
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [categorySearch, setCategorySearch] = useState('');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [specKey, setSpecKey] = useState('');
   const [specValue, setSpecValue] = useState('');
   const [marketplaceUrl, setMarketplaceUrl] = useState('');
   const [importing, setImporting] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [longPressedImage, setLongPressedImage] = useState<number | null>(null);
+
+  // Фильтрованные категории для поиска
+  const filteredCategories = useMemo(() => {
+    if (!categorySearch.trim()) return categories;
+    const query = categorySearch.toLowerCase();
+    return categories.filter(cat => cat.name.toLowerCase().includes(query));
+  }, [categories, categorySearch]);
+
+  // Загрузка категорий
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('product_categories')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (err) {
+      console.error('Error loading categories:', err);
+    }
+  };
 
   useEffect(() => {
     if (product) {
@@ -55,13 +87,14 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
         price: product.price.toString(),
         original_price: product.original_price?.toString() || '',
         images: product.images,
-        tags: product.tags,
+        category_ids: product.category_ids || [], // Изменено с tags
         status: product.status,
         type: product.type,
         is_featured: product.is_featured,
         specifications: product.specifications || {},
         is_imported: product.is_imported || false,
-        source_url: product.source_url || ''
+        source_url: product.source_url || '',
+        margin_percent: product.margin_percent ?? 20
       });
       
       if (product.source_url) {
@@ -70,9 +103,29 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     }
   }, [product]);
 
+  // Автоматическое заполнение старой цены при завершении ввода (onBlur)
+  const handlePriceBlur = () => {
+    const price = parseFloat(formData.price);
+    
+    // Если цена валидна и старая цена пустая, автоматически заполняем
+    if (price > 0 && !formData.original_price) {
+      // Случайная наценка от 15% до 30%
+      const randomPercent = 15 + Math.random() * 15; // 15-30%
+      const calculatedOriginalPrice = price * (1 + randomPercent / 100);
+      const originalPrice = Math.round(calculatedOriginalPrice).toString();
+      
+      setFormData(prev => ({
+        ...prev,
+        original_price: originalPrice
+      }));
+    }
+  };
+
   // Функция импорта товара с маркетплейса
   const handleImportFromMarketplace = async () => {
-    if (!marketplaceUrl.trim()) {
+    const trimmedUrl = marketplaceUrl.trim();
+    
+    if (!trimmedUrl) {
       setError('Введите ссылку на товар');
       return;
     }
@@ -85,7 +138,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
       return;
     }
 
-    const marketplace = detectMarketplace(marketplaceUrl);
+    const marketplace = detectMarketplace(trimmedUrl);
     if (!marketplace) {
       setError('Неподдерживаемый маркетплейс. Поддерживаются: Wildberries, Ozon, Яндекс Маркет');
       return;
@@ -95,33 +148,77 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     setError(null);
 
     try {
-      const productData = await marketplaceParser.parseProduct(marketplaceUrl);
+      console.log('🔄 Starting import from marketplace:', trimmedUrl);
+      const productData = await marketplaceParser.parseProduct(trimmedUrl);
       
-      // Применяем наценку 20% к цене
-      const basePrice = productData.price;
-      const finalPrice = Math.round(basePrice * 1.2);
+      // Логируем полученные данные для отладки
+      console.log('📥 Получены данные от парсера:', {
+        title: productData.title,
+        price: productData.price,
+        old_price: productData.old_price,
+        description: productData.description?.substring(0, 100) + '...',
+        images_count: productData.images?.length || 0,
+        characteristics_count: Object.keys(productData.characteristics || {}).length,
+        in_stock: productData.in_stock
+      });
       
-      // Генерируем SKU если его нет
-      const sku = formData.sku || `IMP-${Date.now()}`;
+      // Валидация данных
+      if (!productData.title || productData.title.length < 3) {
+        throw new Error('Не удалось извлечь название товара. Попробуйте другую ссылку.');
+      }
       
-      // Заполняем форму данными
+      if (!productData.price || productData.price <= 0) {
+        console.warn('⚠️ Цена не извлечена или равна 0, будет установлена 0');
+      }
+      
+      // Импортируем цены БЕЗ наценки - как есть с маркетплейса
+      const basePrice = productData.price || 0;
+      const baseOriginalPrice = productData.old_price && productData.old_price > 0
+        ? productData.old_price 
+        : null;
+      
+      // Генерируем SKU как 6-значное число
+      const sku = formData.sku || Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Очищаем и валидируем изображения
+      const validImages = (productData.images || []).filter(img => 
+        img && typeof img === 'string' && img.startsWith('http')
+      );
+      
+      console.log('✅ Подготовка данных для формы:', {
+        title: productData.title,
+        basePrice,
+        baseOriginalPrice,
+        images_count: validImages.length,
+        description_length: productData.description?.length || 0
+      });
+      
+      // Автоматически рассчитываем первоначальную цену с наценкой 15-30%
+      let calculatedOriginalPrice = '';
+      if (basePrice > 0 && !baseOriginalPrice) {
+        const randomPercent = 15 + Math.random() * 15; // 15-30%
+        calculatedOriginalPrice = Math.round(basePrice * (1 + randomPercent / 100)).toString();
+      }
+      
+      // Заполняем форму данными БЕЗ наценки
       setFormData(prev => ({
         ...prev,
         sku,
-        name: productData.title,
-        description: productData.description,
-        composition: productData.composition || '',
-        price: finalPrice.toString(),
-        original_price: productData.old_price ? Math.round(productData.old_price * 1.2).toString() : '',
-        images: productData.images,
+        name: productData.title.trim(),
+        description: (productData.description || '').trim(),
+        composition: (productData.composition || '').trim(),
+        price: basePrice.toString(),
+        original_price: baseOriginalPrice ? baseOriginalPrice.toString() : calculatedOriginalPrice,
+        images: validImages,
         status: productData.in_stock ? 'in_stock' : 'out_of_stock',
-        specifications: productData.characteristics,
+        specifications: productData.characteristics || {},
         is_imported: true,
-        source_url: marketplaceUrl
+        source_url: marketplaceUrl,
+        margin_percent: 20 // Наценка по умолчанию 20%
       }));
       
       // Показываем успешное сообщение
-      alert(`✅ Товар успешно загружен с ${marketplace === 'wildberries' ? 'Wildberries' : marketplace === 'ozon' ? 'Ozon' : 'Яндекс Маркет'}!\n\nЦена с наценкой 20%: ${finalPrice}₽\n\nПроверьте данные и отредактируйте при необходимости.`);
+      alert(`✅ Товар успешно загружен с ${marketplace === 'wildberries' ? 'Wildberries' : marketplace === 'ozon' ? 'Ozon' : 'Яндекс Маркет'}!\n\nЦена импортирована: ${basePrice}₽\n\nНаценка 20% будет применена при сохранении товара.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка импорта товара');
     } finally {
@@ -135,23 +232,38 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     setError(null);
 
     try {
+      // Если товар импортирован, применяем наценку к ценам
+      let finalPrice = parseFloat(formData.price);
+      let finalOriginalPrice = formData.original_price ? parseFloat(formData.original_price) : null;
+      
+      if (formData.is_imported && formData.margin_percent) {
+        const marginMultiplier = 1 + (formData.margin_percent / 100);
+        finalPrice = Math.round(finalPrice * marginMultiplier);
+        if (finalOriginalPrice) {
+          finalOriginalPrice = Math.round(finalOriginalPrice * marginMultiplier);
+        }
+      }
+      
       const productData = {
         sku: formData.sku,
         name: formData.name,
         description: formData.description,
         composition: formData.composition || null,
-        price: parseFloat(formData.price),
-        original_price: formData.original_price ? parseFloat(formData.original_price) : null,
+        price: finalPrice,
+        original_price: finalOriginalPrice,
         images: formData.images,
-        tags: formData.tags,
+        category_ids: formData.category_ids, // Изменено с tags на category_ids
         status: formData.status,
         type: formData.type,
         is_featured: formData.is_featured,
         specifications: Object.keys(formData.specifications).length > 0 ? formData.specifications : null,
         is_imported: formData.is_imported,
         source_url: formData.source_url || null,
+        margin_percent: formData.is_imported ? Math.round(formData.margin_percent) : null, // Округляем до целого числа
         last_price_check_at: formData.is_imported ? new Date().toISOString() : null
       };
+
+      console.log('📤 Отправка данных товара:', productData);
 
       if (product) {
         await productService.update(product.id, productData);
@@ -161,26 +273,45 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
 
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка сохранения товара');
+      console.error('❌ Ошибка сохранения товара:', err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Ошибка сохранения товара');
+      }
     } finally {
       setLoading(false);
     }
   };
-
-  const addTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim()) && formData.tags.length < 3) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
-      setNewTag('');
-    }
+  
+  // Функции для работы с категориями
+  const toggleCategory = (categoryId: string) => {
+    setFormData(prev => {
+      const isSelected = prev.category_ids.includes(categoryId);
+      
+      if (isSelected) {
+        // Убираем категорию
+        return {
+          ...prev,
+          category_ids: prev.category_ids.filter(id => id !== categoryId)
+        };
+      } else {
+        // Добавляем категорию (максимум 3)
+        if (prev.category_ids.length >= 3) {
+          return prev;
+        }
+        return {
+          ...prev,
+          category_ids: [...prev.category_ids, categoryId]
+        };
+      }
+    });
   };
 
-  const removeTag = (tagToRemove: string) => {
+  const removeCategory = (categoryId: string) => {
     setFormData(prev => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
+      category_ids: prev.category_ids.filter(id => id !== categoryId)
     }));
   };
 
@@ -241,6 +372,25 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
       document.body.style.overflow = originalOverflow;
     };
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showCategoryDropdown && !target.closest('.category-dropdown-container')) {
+        setShowCategoryDropdown(false);
+        setCategorySearch('');
+      }
+    };
+
+    if (showCategoryDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCategoryDropdown]);
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 admin-modal">
@@ -320,7 +470,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                     type="button"
                     onClick={handleImportFromMarketplace}
                     disabled={importing || !marketplaceUrl.trim()}
-                    className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="gap-2 bg-blue-600 hover:bg-blue-700 text-black"
                   >
                     {importing ? (
                       <>
@@ -340,7 +490,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                     <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
                       Импортирован
                     </Badge>
-                    <span>Цена автоматически обновляется с наценкой 20%</span>
+                    <span>Наценка {formData.margin_percent || 20}% будет применена при сохранении</span>
                   </div>
                 )}
               </div>
@@ -386,9 +536,13 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                           step="0.01"
                           value={formData.price}
                           onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                          onBlur={handlePriceBlur}
                           placeholder="1000.00"
                           required
                         />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Старая цена автоматически заполнится на 15-30% больше после ввода
+                        </p>
                       </div>
 
                       <div>
@@ -402,6 +556,31 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                           placeholder="1200.00"
                         />
                       </div>
+
+                      {formData.is_imported && (
+                        <div>
+                          <Label htmlFor="margin_percent">Наценка (%) *</Label>
+                          <Input
+                            id="margin_percent"
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="1"
+                            value={formData.margin_percent}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value) || 0;
+                              const clampedValue = Math.max(0, Math.min(100, value));
+                              setFormData(prev => ({ ...prev, margin_percent: clampedValue }));
+                            }}
+                            placeholder="20"
+                            required
+                            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Наценка от 0% до 100%. Влияет на цену товара при обновлении с маркетплейса.
+                          </p>
+                        </div>
+                      )}
 
                       <div>
                         <Label htmlFor="status">Статус</Label>
@@ -479,39 +658,107 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                         />
                       </div>
 
-                      {/* Tags */}
+                      {/* Categories */}
                       <div>
-                        <Label>Теги (максимум 3)</Label>
-                        <div className="flex gap-2 mb-2">
-                          <Input
-                            value={newTag}
-                            onChange={(e) => setNewTag(e.target.value)}
-                            placeholder="Добавить тег"
-                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                            disabled={formData.tags.length >= 3}
-                          />
-                          <Button
-                            type="button"
-                            onClick={addTag}
-                            disabled={formData.tags.length >= 3}
-                            size="sm"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {formData.tags.map((tag, index) => (
-                            <Badge key={index} variant="secondary" className="gap-1">
-                              {tag}
-                              <button
-                                type="button"
-                                onClick={() => removeTag(tag)}
-                                className="ml-1 hover:text-red-600"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
+                        <Label>Категории (максимум 3)</Label>
+                        <div className="space-y-2">
+                          {/* Dropdown with search */}
+                          <div className="relative category-dropdown-container">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                              className="w-full justify-between h-10 text-sm"
+                            >
+                              <span className="text-muted-foreground">
+                                {formData.category_ids.length === 0 
+                                  ? 'Выберите категории...' 
+                                  : `Выбрано: ${formData.category_ids.length}/3`}
+                              </span>
+                              <span className={`transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`}>▼</span>
+                            </Button>
+                            
+                            {showCategoryDropdown && (
+                              <div className="absolute z-50 w-full mt-1 bg-background border-2 border-border rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                {/* Search input */}
+                                <div className="p-2 border-b border-border">
+                                  <Input
+                                    type="text"
+                                    placeholder="Поиск категорий..."
+                                    value={categorySearch}
+                                    onChange={(e) => setCategorySearch(e.target.value)}
+                                    className="h-9 text-sm"
+                                    autoFocus
+                                  />
+                                </div>
+                                
+                                {/* Category list */}
+                                <div className="overflow-y-auto max-h-48">
+                                  {filteredCategories.length === 0 ? (
+                                    <div className="p-4 text-center text-sm text-muted-foreground">
+                                      Категории не найдены
+                                    </div>
+                                  ) : (
+                                    filteredCategories.map((category) => {
+                                      const isSelected = formData.category_ids.includes(category.id);
+                                      const isDisabled = !isSelected && formData.category_ids.length >= 3;
+                                      
+                                      return (
+                                        <button
+                                          key={category.id}
+                                          type="button"
+                                          onClick={() => {
+                                            if (!isDisabled) {
+                                              toggleCategory(category.id);
+                                            }
+                                          }}
+                                          disabled={isDisabled}
+                                          className={`
+                                            w-full px-3 py-2 text-left text-sm transition-colors
+                                            ${isSelected 
+                                              ? 'bg-primary/10 text-black font-medium' 
+                                              : isDisabled
+                                                ? 'text-gray-400 cursor-not-allowed'
+                                                : 'hover:bg-muted'
+                                            }
+                                          `}
+                                        >
+                                          <div className="flex items-center justify-between">
+                                            <span>{category.name}</span>
+                                            {isSelected && <span className="text-black">✓</span>}
+                                          </div>
+                                        </button>
+                                      );
+                                    })
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Selected categories display */}
+                          {formData.category_ids.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-2 border-t border-border/50">
+                              <span className="text-xs text-muted-foreground">Выбрано:</span>
+                              {formData.category_ids.map((categoryId) => {
+                                const category = categories.find(c => c.id === categoryId);
+                                if (!category) return null;
+                                
+                                return (
+                                  <Badge key={categoryId} variant="secondary" className="gap-1">
+                                    {category.name}
+                                    <button
+                                      type="button"
+                                      onClick={() => removeCategory(categoryId)}
+                                      className="ml-1 hover:text-red-600"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </Badge>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -519,58 +766,165 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                 </div>
               </div>
 
-              {/* Images */}
-              <div className="bg-muted/30 dark:bg-gray-800/30 rounded-xl p-6 border border-border/50">
+              {/* Images - Compact Gallery */}
+              <div className="bg-muted/30 dark:bg-gray-800/30 rounded-xl p-4 sm:p-6 border border-border/50">
                 <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
                   <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
                     <span className="text-xs text-green-600 dark:text-green-400">🖼️</span>
                   </div>
-                  Изображения товара (до 10 фото)
+                  Изображения товара ({formData.images.length}/10)
                 </h3>
-                <div className="space-y-4">
-                  {formData.images.map((image, index) => (
-                    <div key={index}>
-                      <div className="flex items-center justify-between mb-2">
-                        <Label>Изображение {index + 1}</Label>
-                        <div className="flex gap-2">
+                
+                {/* Compact Image Grid */}
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 mb-4">
+                  {formData.images.map((image, index) => {
+                    const isLongPressed = longPressedImage === index;
+                    let longPressTimer: NodeJS.Timeout | null = null;
+                    
+                    const handleTouchStart = () => {
+                      // Запускаем таймер для long press (500ms)
+                      longPressTimer = setTimeout(() => {
+                        setLongPressedImage(index);
+                      }, 500);
+                    };
+                    
+                    const handleTouchEnd = () => {
+                      // Отменяем таймер
+                      if (longPressTimer) {
+                        clearTimeout(longPressTimer);
+                      }
+                      
+                      // Если не было long press, открываем превью
+                      if (!isLongPressed) {
+                        setPreviewImage(image);
+                      }
+                    };
+                    
+                    const handleTouchMove = () => {
+                      // Отменяем long press при движении пальца
+                      if (longPressTimer) {
+                        clearTimeout(longPressTimer);
+                      }
+                    };
+                    
+                    return (
+                      <div 
+                        key={index}
+                        className="relative group aspect-square rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all bg-muted/50"
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                        onTouchMove={handleTouchMove}
+                      >
+                        {/* Image Preview */}
+                        <img 
+                          src={image} 
+                          alt={`Product ${index + 1}`}
+                          className="w-full h-full object-cover cursor-pointer select-none"
+                          onClick={() => setPreviewImage(image)}
+                          draggable={false}
+                        />
+                        
+                        {/* Order Badge */}
+                        <div className="absolute top-1 left-1 bg-black/70 text-white text-[10px] sm:text-xs px-1.5 py-0.5 rounded font-medium">
+                          {index + 1}
+                        </div>
+                        
+                        {/* Controls - Show on hover (desktop) or long press (mobile) */}
+                        <div className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-1 ${
+                          isLongPressed ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'
+                        }`}>
+                          {/* Move Up */}
+                          {index > 0 && (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveImage(index, index - 1);
+                                setLongPressedImage(null);
+                              }}
+                              onTouchEnd={(e) => {
+                                e.stopPropagation();
+                                moveImage(index, index - 1);
+                                setLongPressedImage(null);
+                              }}
+                              className="h-8 w-8 sm:h-7 sm:w-7 p-0 text-xs"
+                            >
+                              ↑
+                            </Button>
+                          )}
+                          
+                          {/* Move Down */}
+                          {index < formData.images.length - 1 && (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveImage(index, index + 1);
+                                setLongPressedImage(null);
+                              }}
+                              onTouchEnd={(e) => {
+                                e.stopPropagation();
+                                moveImage(index, index + 1);
+                                setLongPressedImage(null);
+                              }}
+                              className="h-8 w-8 sm:h-7 sm:w-7 p-0 text-xs"
+                            >
+                              ↓
+                            </Button>
+                          )}
+                          
+                          {/* Remove */}
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="destructive"
                             size="sm"
-                            onClick={() => moveImage(index, index - 1)}
-                            disabled={index === 0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeImage(image);
+                              setLongPressedImage(null);
+                            }}
+                            onTouchEnd={(e) => {
+                              e.stopPropagation();
+                              removeImage(image);
+                              setLongPressedImage(null);
+                            }}
+                            className="h-8 w-8 sm:h-7 sm:w-7 p-0"
                           >
-                            ↑
+                            <X className="h-4 w-4" />
                           </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => moveImage(index, index + 1)}
-                            disabled={index === formData.images.length - 1}
-                          >
-                            ↓
-                          </Button>
+                          
+                          {/* Close button for mobile */}
+                          {isLongPressed && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLongPressedImage(null);
+                              }}
+                              onTouchEnd={(e) => {
+                                e.stopPropagation();
+                                setLongPressedImage(null);
+                              }}
+                              className="h-8 w-8 p-0 md:hidden absolute top-1 right-1 bg-black/50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
-                      <ImageUpload
-                        value={image}
-                        onChange={(url) => {
-                          const newImages = [...formData.images];
-                          newImages[index] = url;
-                          setFormData(prev => ({ ...prev, images: newImages }));
-                        }}
-                        onRemove={() => removeImage(image)}
-                      />
-                    </div>
-                  ))}
+                    );
+                  })}
                   
-                  {/* Add new image */}
+                  {/* Add New Image Button */}
                   {formData.images.length < 10 && (
-                    <div>
-                      <Label>Добавить ещё изображение ({formData.images.length}/10)</Label>
-                      <ImageUpload
-                        value=""
+                    <div className="aspect-square">
+                      <ImageUploadCompact
                         onChange={(url) => {
                           if (url && !formData.images.includes(url) && formData.images.length < 10) {
                             setFormData(prev => ({
@@ -582,13 +936,19 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                       />
                     </div>
                   )}
-                  
-                  {formData.images.length >= 10 && (
-                    <div className="text-sm text-muted-foreground bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                      Достигнуто максимальное количество изображений (10)
-                    </div>
-                  )}
                 </div>
+                
+                {formData.images.length >= 10 && (
+                  <div className="text-xs sm:text-sm text-muted-foreground bg-yellow-50 dark:bg-yellow-900/20 p-2 sm:p-3 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                    Достигнуто максимальное количество изображений (10)
+                  </div>
+                )}
+                
+                {formData.images.length === 0 && (
+                  <div className="text-xs sm:text-sm text-muted-foreground text-center py-8 border-2 border-dashed border-border/50 rounded-lg">
+                    Нажмите на кнопку выше, чтобы добавить изображения
+                  </div>
+                )}
               </div>
 
               {/* Specifications */}
@@ -638,7 +998,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                   type="submit" 
                   disabled={loading}
                   loading={loading}
-                  className="flex-1 h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all duration-200"
+                  className="flex-1 h-11 bg-primary hover:bg-primary/90 text-black font-medium transition-all duration-200"
                 >
                   {product ? 'Обновить товар' : 'Создать товар'}
                 </Button>
@@ -658,5 +1018,38 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     </div>
   );
 
-  return createPortal(modalContent, document.body);
+  return (
+    <>
+      {createPortal(modalContent, document.body)}
+      
+      {/* Image Preview Modal */}
+      {previewImage && createPortal(
+        <div 
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in-0 duration-200"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-4 right-4 z-10 h-10 w-10 rounded-full bg-black/50 hover:bg-black/70 text-white"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            
+            {/* Image */}
+            <img 
+              src={previewImage} 
+              alt="Preview"
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
 }

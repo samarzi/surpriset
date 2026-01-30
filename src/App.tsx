@@ -6,7 +6,6 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { Toaster } from 'sonner'
 import { Toaster as CustomToaster } from '@/components/ui/toaster'
 import { CartProvider } from '@/contexts/CartContext'
-import { CustomBundleProvider } from '@/contexts/CustomBundleContext'
 import { LikesProvider } from '@/contexts/LikesContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { useTelegramWebApp } from '@/hooks/useTelegramWebApp'
@@ -14,15 +13,17 @@ import { useTelegramWebApp } from '@/hooks/useTelegramWebApp'
 // Pages
 const HomePage = lazy(() => import('@/pages/HomePage'))
 const CatalogPage = lazy(() => import('@/pages/CatalogPage'))
+const FiltersPage = lazy(() => import('@/pages/FiltersPage'))
 const ProductDetailPage = lazy(() => import('@/pages/ProductDetailPage'))
 const CartPage = lazy(() => import('@/pages/CartPage'))
 const CheckoutPage = lazy(() => import('@/pages/CheckoutPage'))
 const OrderSuccessPage = lazy(() => import('@/pages/OrderSuccessPage'))
-const BundleBuilderPage = lazy(() => import('@/pages/BundleBuilderPage'))
 const LikesPage = lazy(() => import('@/pages/LikesPage'))
 const AdminPage = lazy(() => import('@/pages/AdminPage'))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const MyOrdersPage = lazy(() => import('@/pages/MyOrdersPage'))
+const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
+const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 
 // Layout
@@ -66,6 +67,7 @@ function ScrollToTop() {
   return null;
 }
 
+
 function App() {
   const { isTelegram, isFullscreen, forceFullscreen } = useTelegramWebApp()
   const [isLoading, setIsLoading] = useState(!isTelegram) // Не показываем загрузку в Telegram
@@ -87,8 +89,7 @@ function App() {
       <ThemeProvider defaultTheme="system" storageKey="surpriset-ui-theme">
         <LikesProvider>
           <CartProvider>
-            <CustomBundleProvider>
-              {isLoading && !isTelegram && (
+            {isLoading && !isTelegram && (
                 <LoadingScreen 
                   onLoadingComplete={handleLoadingComplete} 
                   isTelegram={isTelegram}
@@ -116,13 +117,15 @@ function App() {
                         <Routes>
                           <Route path="/" element={<HomePage />} />
                           <Route path="/catalog" element={<CatalogPage />} />
+                          <Route path="/catalog/filters" element={<FiltersPage />} />
                           <Route path="/product/:id" element={<ProductDetailPage />} />
                           <Route path="/cart" element={<CartPage />} />
                           <Route path="/checkout" element={<CheckoutPage />} />
                           <Route path="/order-success" element={<OrderSuccessPage />} />
-                          <Route path="/bundle-builder" element={<BundleBuilderPage />} />
                           <Route path="/likes" element={<LikesPage />} />
                           <Route path="/profile" element={<ProfilePage />} />
+                          <Route path="/profile/settings" element={<SettingsPage />} />
+                          <Route path="/login" element={<LoginPage />} />
                           <Route path="/my-orders" element={<MyOrdersPage />} />
                           <Route path="/admin/*" element={<AdminPage />} />
                           <Route path="*" element={<NotFoundPage />} />
@@ -146,7 +149,6 @@ function App() {
                 />
                 <CustomToaster />
               </Router>
-            </CustomBundleProvider>
           </CartProvider>
         </LikesProvider>
       </ThemeProvider>

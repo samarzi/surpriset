@@ -16,7 +16,6 @@ export default function Header() {
 
   const navigation = [
     { name: 'Каталог', href: '/catalog' },
-    { name: 'Собрать набор', href: '/bundle-builder' },
   ];
 
   const isActive = (path: string) => {
@@ -83,30 +82,37 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            {navigation.map((item) => {
-              const isCatalog = item.href === '/catalog'
-              const isBundle = item.href === '/bundle-builder'
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`relative text-sm font-semibold transition-all duration-200 rounded-xl px-3 py-2 min-h-10 flex items-center hover:bg-muted/50 hover:text-primary ${
-                    isActive(item.href)
-                      ? 'text-primary bg-primary/10'
-                      : isCatalog
-                      ? 'text-primary/90 bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/30 shadow-sm'
-                      : isBundle
-                      ? 'text-primary/90 bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/30 shadow-sm'
-                      : 'text-foreground/80 hover:text-foreground'
-                  }`}
-                >
-                  {item.name}
-                  {isActive(item.href) && (
-                    <div className="absolute -bottom-1 left-2 right-2 h-0.5 bg-brand-gradient rounded-full" />
-                  )}
-                </Link>
-              )
-            })}
+            {/* Pill Toggle для Главная/Каталог */}
+            <div className="relative flex items-center bg-muted/50 rounded-full p-1 border border-border/50">
+              <Link
+                to="/"
+                className={`relative text-sm font-medium transition-all duration-300 rounded-full px-5 py-2 min-h-9 flex items-center z-10 ${
+                  isActive('/')
+                    ? 'text-black font-semibold'
+                    : 'text-foreground/70 hover:text-foreground'
+                }`}
+              >
+                Главная
+              </Link>
+              <Link
+                to="/catalog"
+                className={`relative text-sm font-medium transition-all duration-300 rounded-full px-5 py-2 min-h-9 flex items-center z-10 ${
+                  isActive('/catalog')
+                    ? 'text-black font-semibold'
+                    : 'text-foreground/70 hover:text-foreground'
+                }`}
+              >
+                Каталог
+              </Link>
+              {/* Sliding background (мыльница) */}
+              <div
+                className={`absolute top-1 bottom-1 bg-gradient-to-r from-primary via-primary to-primary/90 rounded-full shadow-lg shadow-primary/30 transition-all duration-300 ease-out ${
+                  isActive('/')
+                    ? 'left-1 right-[calc(50%+2px)]'
+                    : 'left-[calc(50%-2px)] right-1'
+                }`}
+              />
+            </div>
           </nav>
 
           {/* Desktop Search Bar */}

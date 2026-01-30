@@ -1,45 +1,68 @@
-import fetch from "node-fetch";
+// Прокси для API запросов (для обхода CORS в продакшене)
+// Используется как middleware в Express сервере
 
-const ALLOWED_HOSTS = [
-  "card.wb.ru",
-  "www.wildberries.ru",
-  "ozon.ru",
-  "market.yandex.ru"
-];
+const http = require('http');
+const https = require('https');
+const { URL } = require('url');
 
-export default async function handler(req, res) {
-  try {
-    const targetUrl = req.query.url;
+const API_SERVER_URL = process.env.API_SERVER_URL || 'http://localhost:5001';
 
-    if (!targetUrl) {
-      return res.status(400).json({ error: "url required" });
+function proxyApiRequest(req, res) {
+  const targetUrl = req.query.url;
+  
+  if (!targetUrl) {
+    return res.status(400).json({
+      success: false,
+      error: 'URL parameter is required'
+    });
+  }
+
+  // Формируем URL для Python API
+  const apiUrl = `${API_SERVER_URL}/api/parse?url=${encodeURIComponent(targetUrl)}`;
+  
+  const url = new URL(apiUrl);
+  const client = url.protocol === 'https:' ? https : http;
+  
+  const options = {
+    hostname: url.hostname,
+    port: url.port || (url.protocol === 'https:' ? 443 : 80),
+    path: url.pathname + url.search,
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'User-Agent': 'SurpriSet-Proxy/1.0'
     }
+  };
 
-    const decodedUrl = decodeURIComponent(targetUrl);
-    const hostname = new URL(decodedUrl).hostname;
-
-    if (!ALLOWED_HOSTS.some(h => hostname.includes(h))) {
-      return res.status(403).json({ error: "host not allowed" });
-    }
-
-    const response = await fetch(decodedUrl, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "*/*",
-        "Accept-Language": "ru-RU,ru;q=0.9",
-        "Referer": "https://www.wildberries.ru/"
+  const proxyReq = client.request(options, (proxyRes) => {
+    let data = '';
+    
+    proxyRes.on('data', (chunk) => {
+      data += chunk;
+    });
+    
+    proxyRes.on('end', () => {
+      try {
+        const jsonData = JSON.parse(data);
+        res.status(proxyRes.statusCode).json(jsonData);
+      } catch (e) {
+        res.status(500).json({
+          success: false,
+          error: 'Failed to parse API response'
+        });
       }
     });
+  });
 
-    const contentType = response.headers.get("content-type");
+  proxyReq.on('error', (error) => {
+    console.error('Proxy error:', error);
+    res.status(500).json({
+      success: false,
+      error: `Proxy error: ${error.message}`
+    });
+  });
 
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Content-Type", contentType || "application/json");
-
-    const data = await response.text();
-    res.status(200).send(data);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  proxyReq.end();
 }
+
+module.exports = { proxyApiRequest };

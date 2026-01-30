@@ -232,7 +232,7 @@ export function BannerForm({ banner, onClose }: BannerFormProps) {
               <Button 
                 type="submit" 
                 disabled={loading} 
-                className="flex-1 h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all duration-200"
+                className="flex-1 h-11 bg-primary hover:bg-primary/90 text-black font-medium transition-all duration-200"
               >
                 {loading ? (
                   <div className="flex items-center gap-2">

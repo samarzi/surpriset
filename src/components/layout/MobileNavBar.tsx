@@ -1,14 +1,12 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Home, Gift, Grid3X3, User, ShoppingCart } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
-import { useCustomBundle } from '@/contexts/CustomBundleContext'
 import { cn } from '@/lib/utils'
 import { useKeyboardVisible } from '@/hooks/useKeyboardVisible'
 
 const items = [
   { key: 'home', label: 'Главная', icon: Home, to: '/' },
   { key: 'catalog', label: 'Каталог', icon: Grid3X3, to: '/catalog' },
-  { key: 'bundle', label: 'Собрать набор', icon: Gift, to: '/bundle-builder' },
   { key: 'cart', label: 'Корзина', icon: ShoppingCart, to: '/cart' },
   { key: 'profile', label: 'Профиль', icon: User, to: '/profile' },
 ]
@@ -16,7 +14,6 @@ const items = [
 export function MobileNavBar() {
   const location = useLocation()
   const { state: cartState } = useCart()
-  const { state: bundleState } = useCustomBundle()
   const isKeyboardVisible = useKeyboardVisible()
 
   const isActive = (to: string) => {
@@ -25,10 +22,9 @@ export function MobileNavBar() {
   }
 
   const cartItemCount = cartState.itemCount
-  const bundleItemCount = bundleState.items.reduce((sum, item) => sum + item.quantity, 0)
 
-  // Скрываем навигацию на странице админ панели
-  if (location.pathname.startsWith('/admin')) {
+  // Скрываем навигацию на странице админ панели и при оформлении заказа
+  if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/checkout')) {
     return null
   }
 

@@ -12,6 +12,8 @@ const buttonVariants = cva(
       variant: {
         default: "bg-brand-gradient text-black shadow-lg hover:shadow-xl hover:brightness-[1.35] hover:saturate-125 transition-all",
         gradient: "bg-brand-gradient text-black shadow-lg hover:shadow-xl hover:brightness-[1.35] hover:saturate-125 transition-all",
+        // Убедимся, что текст на градиентных кнопках всегда черный
+        'brand-gradient': "bg-brand-gradient text-black shadow-lg hover:shadow-xl hover:brightness-[1.35] hover:saturate-125 transition-all",
         special: "bg-gradient-to-r from-primary via-primary/80 to-primary/60 text-black shadow-xl hover:shadow-2xl hover:shadow-primary/30 hover:brightness-[1.35] hover:saturate-125 transform transition-all duration-300 border-2 border-white/20 hover:border-white/40 backdrop-blur-sm relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/10 before:via-transparent before:to-white/10 before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700",
         glass: "backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border border-white/20 dark:border-gray-700/30 shadow-2xl hover:bg-white/95 dark:hover:bg-gray-900/95 hover:brightness-[1.2] transition-all",
         destructive:

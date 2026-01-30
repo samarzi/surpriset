@@ -28,7 +28,6 @@ export default function Footer() {
               {[
                 { name: 'Главная', href: '/' },
                 { name: 'Каталог', href: '/catalog' },
-                { name: 'Собрать набор', href: '/bundle-builder' },
                 { name: 'Профиль', href: '/profile' },
               ].map((item) => (
                 <li key={item.name}>

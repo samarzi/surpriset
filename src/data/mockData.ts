@@ -186,9 +186,9 @@ export const mockBanners: Banner[] = [
   },
   {
     id: '2',
-    title: 'Собери свой уникальный подарочный набор',
-    image: 'https://images.unsplash.com/photo-1640253621029-7ec13d3b1ece?w=1200&h=400&fit=crop',
-    link: '/bundle-builder',
+    title: 'Широкий выбор товаров в каталоге',
+    image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=1200&h=400&fit=crop',
+    link: '/catalog',
     is_active: true,
     order: 2,
     created_at: '2024-01-14T10:00:00Z'

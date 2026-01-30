@@ -19,6 +19,77 @@ app.get('/api/health', (_req, res) => {
   res.status(200).json({ ok: true });
 });
 
+// Прокси для Python API парсера
+app.get('/api/parse', async (req, res) => {
+  try {
+    const targetUrl = req.query.url;
+    
+    if (!targetUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'URL parameter is required. Please provide a valid marketplace URL.'
+      });
+    }
+
+    // Проксируем запрос к Python API серверу
+    const pythonApiUrl = process.env.PYTHON_API_URL || 'http://localhost:5001';
+    const apiUrl = `${pythonApiUrl}/api/parse?url=${encodeURIComponent(targetUrl)}`;
+    
+    console.log(`📤 Proxying request to Python API: ${apiUrl}`);
+    
+    let response;
+    try {
+      response = await fetch(apiUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'SurpriSet-Proxy/1.0'
+        },
+        timeout: 60000 // 60 секунд для Playwright
+      });
+    } catch (fetchError) {
+      console.error('❌ Failed to connect to Python API:', fetchError);
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      return res.status(503).json({
+        success: false,
+        error: `Не удалось подключиться к Python API серверу на ${pythonApiUrl}. Убедитесь, что сервер запущен.`
+      });
+    }
+
+    // Устанавливаем CORS заголовки
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error('❌ Failed to parse JSON response:', jsonError);
+      return res.status(500).json({
+        success: false,
+        error: 'Ошибка при обработке ответа от Python API'
+      });
+    }
+    
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
+    
+    return res.status(200).json(data);
+  } catch (e) {
+    console.error('Python API proxy error:', e);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.status(500).json({
+      success: false,
+      error: `Proxy error: ${e?.message || 'Failed to connect to Python API'}`
+    });
+  }
+});
+
 app.get('/api/proxy', async (req, res) => {
   try {
     const targetUrl = req.query.url;
@@ -66,8 +137,12 @@ app.get('/api/proxy', async (req, res) => {
 const distDir = path.join(__dirname, 'dist');
 app.use(express.static(distDir));
 
-// SPA fallback
-app.get('*', (_req, res) => {
+// SPA fallback - только для не-API маршрутов
+app.get('*', (req, res) => {
+  // Не обрабатываем API маршруты через SPA fallback
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
   res.sendFile(path.join(distDir, 'index.html'));
 });
 

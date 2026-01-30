@@ -19,18 +19,65 @@ export interface MarketplaceParser {
  async function fetchViaBackendProxy(
    targetUrl: string,
    init: RequestInit & { timeoutMs?: number } = {}
- ): Promise<Response> {
+ ): Promise<MarketplaceProduct> {
    const { timeoutMs = 15000, ...fetchInit } = init;
 
    const controller = new AbortController();
    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
    try {
-     const response = await fetch(`/api/proxy?url=${encodeURIComponent(targetUrl)}`, {
+     // Определяем URL API сервера
+     // Приоритет: переменная окружения > автоматическое определение через Express прокси
+     let apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+     if (!apiBaseUrl) {
+       // Автоматическое определение - используем Express прокси на том же домене
+       const hostname = window.location.hostname;
+       const protocol = window.location.protocol;
+       const port = window.location.port ? `:${window.location.port}` : '';
+       
+       if (hostname === 'localhost' || hostname === '127.0.0.1') {
+         // Локальная разработка - напрямую к Python API
+         apiBaseUrl = 'http://localhost:5001';
+       } else {
+         // Продакшен - используем Express прокси на том же домене
+         // Express сервер проксирует запросы к Python API
+         apiBaseUrl = `${protocol}//${hostname}${port}`;
+       }
+     }
+     
+     if (!targetUrl || !targetUrl.trim()) {
+       console.error('❌ fetchViaBackendProxy: targetUrl is empty', { targetUrl });
+       throw new Error('URL товара не указан');
+     }
+     
+     const requestUrl = `${apiBaseUrl}/api/parse?url=${encodeURIComponent(targetUrl)}`;
+     console.log('📤 Sending request to:', requestUrl);
+     console.log('📤 Target URL:', targetUrl);
+     
+     const response = await fetch(requestUrl, {
        ...fetchInit,
        signal: controller.signal
      });
+     
      clearTimeout(timeoutId);
-     return response;
+     
+     if (!response.ok) {
+       const errorData = await response.json().catch(() => ({}));
+       throw new Error(errorData.error || `HTTP ${response.status}`);
+     }
+     
+     const data = await response.json();
+     
+     // Если Python API вернул ошибку
+     if (data.success === false) {
+       throw new Error(data.error || 'Ошибка Python API');
+     }
+     
+     // Возвращаем данные напрямую
+     if (data.data) {
+       return data.data as MarketplaceProduct;
+     }
+     
+     throw new Error('Неожиданный формат ответа от API');
    } catch (e) {
      clearTimeout(timeoutId);
      throw e;
@@ -121,95 +168,18 @@ class WildberriesParser implements MarketplaceParser {
         throw new Error('Не удалось извлечь ID товара из ссылки Wildberries');
       }
 
-      // Используем публичное API Wildberries для получения данных о товаре
-      const apiUrl = `https://card.wb.ru/cards/v1/detail?appType=1&curr=rub&dest=-1257786&spp=30&nm=${productId}`;
-
+      // Используем Python API через Playwright
       try {
-        let response = await fetchViaBackendProxy(apiUrl, {
+        // fetchViaBackendProxy теперь возвращает данные напрямую
+        const productData = await fetchViaBackendProxy(url, {
           headers: {
             'Accept': 'application/json'
           },
-          timeoutMs: 15000
+          timeoutMs: 60000  // Увеличиваем таймаут для Playwright (может быть долго)
         });
-
-        if (!response.ok) {
-          response = await fetchWithProxyFallback(apiUrl, {
-            headers: {
-              'Accept': 'application/json'
-            },
-            timeoutMs: 15000
-          });
-        }
         
-        const data = await response.json();
+        return productData;
         
-        if (!data.data?.products || data.data.products.length === 0) {
-          throw new Error('Товар не найден на Wildberries');
-        }
-        
-        const product = data.data.products[0];
-        
-        // Извлекаем данные
-        const title = product.name || 'Товар с Wildberries';
-        
-        // Цена в копейках, конвертируем в рубли
-        const price = product.salePriceU ? product.salePriceU / 100 : 0;
-        const old_price = product.priceU && product.priceU !== product.salePriceU 
-          ? product.priceU / 100 
-          : undefined;
-        
-        // Описание
-        const description = product.description || title;
-        
-        // Изображения - формируем URL из данных API
-        const images: string[] = [];
-        if (product.mediaFiles && product.mediaFiles.length > 0) {
-          // Формат URL изображений WB
-          const vol = Math.floor(parseInt(productId) / 100000);
-          const part = Math.floor(parseInt(productId) / 1000);
-          
-          // Добавляем несколько изображений
-          for (let i = 1; i <= Math.min(product.mediaFiles.length, 5); i++) {
-            const imgUrl = `https://basket-${vol < 10 ? '0' + vol : vol}.wbbasket.ru/vol${vol}/part${part}/${productId}/images/big/${i}.webp`;
-            images.push(imgUrl);
-          }
-        }
-        
-        // Если нет изображений из mediaFiles, используем стандартный формат
-        if (images.length === 0) {
-          const vol = Math.floor(parseInt(productId) / 100000);
-          const part = Math.floor(parseInt(productId) / 1000);
-          for (let i = 1; i <= 5; i++) {
-            images.push(`https://basket-${vol < 10 ? '0' + vol : vol}.wbbasket.ru/vol${vol}/part${part}/${productId}/images/big/${i}.webp`);
-          }
-        }
-        
-        // Характеристики
-        const characteristics: Record<string, string> = {};
-        if (product.options && Array.isArray(product.options)) {
-          product.options.forEach((option: any) => {
-            if (option.name && option.value) {
-              characteristics[option.name] = option.value;
-            }
-          });
-        }
-        
-        // Состав
-        const composition = product.composition || undefined;
-        
-        // Наличие
-        const in_stock = product.totalQuantity > 0;
-        
-        return {
-          title,
-          price,
-          old_price,
-          description,
-          characteristics,
-          composition,
-          images: images.slice(0, 10),
-          in_stock
-        };
       } catch (fetchError: any) {
         if (fetchError.name === 'AbortError') {
           throw new Error('Превышено время ожидания ответа от Wildberries. Попробуйте позже.');
@@ -250,66 +220,17 @@ class OzonParser implements MarketplaceParser {
         throw new Error('Не удалось извлечь ID товара из ссылки Ozon');
       }
 
-      // Используем публичное API Ozon
-      const apiUrl = `https://www.ozon.ru/api/composer-api.bx/page/json/v2?url=/product/-${productId}/`;
-
+      // Используем Python API через Playwright
       try {
-        const response = await fetchWithProxyFallback(apiUrl, {
+        // fetchViaBackendProxy теперь возвращает данные напрямую
+        const productData = await fetchViaBackendProxy(url, {
           headers: {
             'Accept': 'application/json'
           },
-          timeoutMs: 15000
+          timeoutMs: 60000  // Увеличиваем таймаут для Playwright
         });
         
-        const data = await response.json();
-        
-        // Ищем данные о товаре в ответе API
-        const productData = data.widgetStates?.['webProductHeading-1']?.data || 
-                           data.widgetStates?.['webPrice-1']?.data;
-        
-        if (!productData) {
-          throw new Error('Товар не найден на Ozon');
-        }
-        
-        const title = productData.name || 'Товар с Ozon';
-        
-        // Цена
-        const price = productData.price?.price || productData.finalPrice || 0;
-        const old_price = productData.price?.originalPrice || productData.originalPrice || undefined;
-        
-        const description = productData.description || title;
-        
-        // Изображения
-        const images: string[] = [];
-        if (productData.images && Array.isArray(productData.images)) {
-          productData.images.forEach((img: any) => {
-            if (img.url) {
-              images.push(img.url);
-            }
-          });
-        }
-        
-        // Характеристики
-        const characteristics: Record<string, string> = {};
-        if (productData.characteristics && Array.isArray(productData.characteristics)) {
-          productData.characteristics.forEach((char: any) => {
-            if (char.key && char.value) {
-              characteristics[char.key] = char.value;
-            }
-          });
-        }
-        
-        const in_stock = productData.inStock !== false;
-        
-        return {
-          title,
-          price,
-          old_price,
-          description,
-          characteristics,
-          images: images.slice(0, 10),
-          in_stock
-        };
+        return productData;
       } catch (fetchError: any) {
         if (fetchError.name === 'AbortError') {
           throw new Error('Превышено время ожидания ответа от Ozon. Попробуйте позже.');
@@ -335,8 +256,11 @@ class YandexMarketParser implements MarketplaceParser {
   private extractProductId(url: string): string | null {
     // Извлекаем ID товара из URL Яндекс Маркет
     // Примеры: https://market.yandex.ru/product--название/123456789
-    const match = url.match(/\/product--[^\/]+\/(\d+)/);
-    return match ? match[1] : null;
+    // Примеры: https://market.yandex.ru/card/товар-со-слешами/123456789?param=value
+    // Сначала убираем параметры запроса
+    const urlWithoutParams = url.split('?')[0];
+    const match = urlWithoutParams.match(/\/card\/(.+?)\/(\d+)/);
+    return match ? match[2] : null;
   }
 
   async parse(url: string): Promise<MarketplaceProduct> {
@@ -347,67 +271,19 @@ class YandexMarketParser implements MarketplaceParser {
         throw new Error('Не удалось извлечь ID товара из ссылки Яндекс Маркет');
       }
 
-      // Используем публичное API Яндекс Маркет
-      const apiUrl = `https://market.yandex.ru/api/resolve/?r=productCard&productId=${productId}`;
-
+      // Используем Python API через Playwright
       try {
-        const response = await fetchWithProxyFallback(apiUrl, {
+        // fetchViaBackendProxy теперь возвращает данные напрямую
+        const productData = await fetchViaBackendProxy(url, {
           headers: {
             'Accept': 'application/json'
           },
-          timeoutMs: 15000
+          timeoutMs: 60000  // Увеличиваем таймаут для Playwright
         });
         
-        const data = await response.json();
-        
-        const productData = data.product || data.data?.product;
-        
-        if (!productData) {
-          throw new Error('Товар не найден на Яндекс Маркет');
-        }
-        
-        const title = productData.name || productData.title || 'Товар с Яндекс Маркет';
-        
-        // Цена
-        const price = productData.price?.value || productData.offers?.[0]?.price?.value || 0;
-        const old_price = productData.oldPrice?.value || undefined;
-        
-        const description = productData.description || title;
-        
-        // Изображения
-        const images: string[] = [];
-        if (productData.pictures && Array.isArray(productData.pictures)) {
-          productData.pictures.forEach((pic: any) => {
-            if (pic.url) {
-              images.push(pic.url);
-            } else if (pic.original) {
-              images.push(pic.original);
-            }
-          });
-        }
-        
-        // Характеристики
-        const characteristics: Record<string, string> = {};
-        if (productData.specs && Array.isArray(productData.specs)) {
-          productData.specs.forEach((spec: any) => {
-            if (spec.name && spec.value) {
-              characteristics[spec.name] = spec.value;
-            }
-          });
-        }
-        
-        const in_stock = productData.isAvailable !== false;
-        
-        return {
-          title,
-          price,
-          old_price,
-          description,
-          characteristics,
-          images: images.slice(0, 10),
-          in_stock
-        };
+        return productData;
       } catch (fetchError: any) {
+        console.error('Yandex Market fetch error:', fetchError);
         if (fetchError.name === 'AbortError') {
           throw new Error('Превышено время ожидания ответа от Яндекс Маркет. Попробуйте позже.');
         }
@@ -436,13 +312,25 @@ export class MarketplaceParserFactory {
   }
 
   async parseProduct(url: string): Promise<MarketplaceProduct> {
-    const parser = this.getParser(url);
+    console.log('🔍 MarketplaceParserFactory.parseProduct called with URL:', url);
+    
+    if (!url || !url.trim()) {
+      console.error('❌ parseProduct: URL is empty', { url });
+      throw new Error('URL товара не указан');
+    }
+    
+    const trimmedUrl = url.trim();
+    console.log('🔍 Trimmed URL:', trimmedUrl);
+    
+    const parser = this.getParser(trimmedUrl);
     
     if (!parser) {
+      console.error('❌ parseProduct: No parser found for URL:', trimmedUrl);
       throw new Error('Неподдерживаемый маркетплейс. Поддерживаются: Wildberries, Ozon, Яндекс Маркет');
     }
     
-    return await parser.parse(url);
+    console.log('✅ Using parser:', parser.constructor.name);
+    return await parser.parse(trimmedUrl);
   }
 }
 

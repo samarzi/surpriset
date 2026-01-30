@@ -1,183 +1,133 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface SwipeBackOptions {
   enabled?: boolean;
   threshold?: number; // Минимальное расстояние для срабатывания (px)
-  velocity?: number; // Минимальная скорость свайпа (px/ms)
+}
+
+interface SwipeBackHandlers {
+  onPointerDown: (e: React.PointerEvent) => void;
+  onPointerMove: (e: React.PointerEvent) => void;
+  onPointerUp: (e: React.PointerEvent) => void;
+  onPointerCancel: (e: React.PointerEvent) => void;
 }
 
 export function useSwipeBack(options: SwipeBackOptions = {}) {
   const {
     enabled = true,
-    threshold = 50, // Уменьшаем порог для более легкого срабатывания
-    velocity = 0.15, // Уменьшаем минимальную скорость
+    threshold = 80, // Стандартный порог для react-swipeable
   } = options;
 
   const navigate = useNavigate();
   const [isSwiping, setIsSwiping] = useState(false);
   const [swipeProgress, setSwipeProgress] = useState(0);
-  
-  const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
-  const touchStartTime = useRef(0);
-  const currentX = useRef(0);
-  const isSwipingRef = useRef(false);
-  const hasDetectedDirection = useRef(false);
-  const swipeDirection = useRef<'horizontal' | 'vertical' | null>(null);
-  const hasNavigatedRef = useRef(false);
+  const effectiveThreshold =
+    typeof window !== 'undefined' && window.innerWidth < 480
+      ? Math.max(55, threshold - 20)
+      : threshold;
 
-  useEffect(() => {
-    if (!enabled) return;
+  // Pointer-based swipe-back: без внешних зависимостей, стабильно в браузере
+  const [gesture, setGesture] = useState<{
+    active: boolean;
+    startX: number;
+    startY: number;
+    lastX: number;
+    lastY: number;
+    pointerId: number | null;
+  }>({ active: false, startX: 0, startY: 0, lastX: 0, lastY: 0, pointerId: null });
 
-    const handleTouchStart = (e: TouchEvent) => {
-      // Начинаем отслеживать только если свайп начался с левого края экрана
-      const touch = e.touches[0];
-      console.log('👆 Touch start at x:', touch.clientX);
-      if (touch.clientX < 100) { // Увеличена зона до 100px от левого края
-        touchStartX.current = touch.clientX;
-        touchStartY.current = touch.clientY;
-        currentX.current = touch.clientX;
-        touchStartTime.current = Date.now();
-        isSwipingRef.current = false;
-        hasDetectedDirection.current = false;
-        swipeDirection.current = null;
-        hasNavigatedRef.current = false;
-        
-        console.log('🟢 Swipe start detected at x:', touch.clientX);
-      } else {
-        console.log('❌ Touch outside swipe zone (>100px)');
-      }
-    };
+  const resetGesture = () => {
+    setGesture({ active: false, startX: 0, startY: 0, lastX: 0, lastY: 0, pointerId: null });
+    setIsSwiping(false);
+    setSwipeProgress(0);
+  };
 
-    const handleTouchMove = (e: TouchEvent) => {
-      if (touchStartX.current === 0) return;
+  const handlers: SwipeBackHandlers = {
+    onPointerDown: (e) => {
+      if (!enabled) return;
 
-      const touch = e.touches[0];
-      currentX.current = touch.clientX;
-      const deltaX = touch.clientX - touchStartX.current;
-      const deltaY = touch.clientY - touchStartY.current;
-      const absDeltaX = Math.abs(deltaX);
-      const absDeltaY = Math.abs(deltaY);
+      // Только primary pointer (палец/первая кнопка)
+      if (e.isPrimary === false) return;
 
-      // Определяем направление свайпа только один раз при первом движении
-      if (!hasDetectedDirection.current && (absDeltaX > 3 || absDeltaY > 3)) {
-        hasDetectedDirection.current = true;
-        
-        // Определяем направление: горизонтальное или вертикальное
-        if (absDeltaX > absDeltaY * 1.5) {
-          // Горизонтальный свайп
-          if (deltaX > 0) {
-            // Свайп вправо - активируем
-            swipeDirection.current = 'horizontal';
-            isSwipingRef.current = true;
-            setIsSwiping(true);
-            console.log('➡️ Horizontal swipe RIGHT detected');
-          } else {
-            // Свайп влево - игнорируем
-            console.log('⬅️ Horizontal swipe LEFT - ignoring');
-            touchStartX.current = 0;
-            touchStartY.current = 0;
-            return;
-          }
-        } else {
-          // Вертикальный свайп - игнорируем
-          swipeDirection.current = 'vertical';
-          console.log('⬆️⬇️ Vertical swipe - ignoring');
-          touchStartX.current = 0;
-          touchStartY.current = 0;
-          return;
-        }
-      }
+      // Edge swipe: начинаем только у левого края
+      if (e.clientX > 30) return;
 
-      // Обновляем прогресс только если это горизонтальный свайп вправо
-      if (isSwipingRef.current && swipeDirection.current === 'horizontal' && deltaX > 0) {
-        // Обновляем прогресс свайпа (0-1)
-        const progress = Math.min(deltaX / threshold, 1);
-        setSwipeProgress(progress);
+      setGesture({
+        active: true,
+        startX: e.clientX,
+        startY: e.clientY,
+        lastX: e.clientX,
+        lastY: e.clientY,
+        pointerId: e.pointerId,
+      });
 
-        // Предотвращаем скролл во время свайпа
-        if (e.cancelable) {
-          e.preventDefault();
-        }
-      }
-    };
+      // На iOS/мобилках может выделяться текст/кнопки — сбрасываем
+      setIsSwiping(false);
+      setSwipeProgress(0);
+    },
 
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (!isSwipingRef.current || swipeDirection.current !== 'horizontal') {
-        touchStartX.current = 0;
-        touchStartY.current = 0;
-        currentX.current = 0;
-        hasDetectedDirection.current = false;
-        swipeDirection.current = null;
+    onPointerMove: (e) => {
+      if (!enabled) return;
+      if (!gesture.active) return;
+      if (gesture.pointerId !== e.pointerId) return;
+
+      const deltaX = e.clientX - gesture.startX;
+      const deltaY = e.clientY - gesture.startY;
+
+      // Если жест больше вертикальный — это скролл, не трогаем
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
         return;
       }
 
-      const touch = e.changedTouches[0];
-      const deltaX = touch.clientX - touchStartX.current;
-      const deltaTime = Date.now() - touchStartTime.current;
-      const swipeVelocity = deltaX / deltaTime;
-
-      console.log('🏁 Swipe end - deltaX:', deltaX, 'velocity:', swipeVelocity, 'threshold:', threshold, 'velocity threshold:', velocity);
-
-      // Проверяем условия для навигации назад (более мягкие условия)
-      const shouldNavigateBack = deltaX > threshold || swipeVelocity > velocity;
-
-      console.log('🔍 Should navigate?', shouldNavigateBack, '| deltaX > threshold:', deltaX > threshold, '| velocity > min:', swipeVelocity > velocity);
-
-      if (shouldNavigateBack) {
-        console.log('✅ Navigating back!');
-        if (!hasNavigatedRef.current) {
-          hasNavigatedRef.current = true;
-          console.log('🚀 Calling navigate(-1)');
-          navigate(-1);
-        } else {
-          console.log('⚠️ Already navigated, skipping');
-        }
-      } else {
-        console.log('❌ Swipe not strong enough - deltaX:', deltaX, 'threshold:', threshold);
+      if (deltaX > 0) {
+        // В этот момент это уже осознанный горизонтальный жест — можно предотвращать скролл
+        e.preventDefault();
+        setIsSwiping(true);
+        const progress = Math.min(deltaX / effectiveThreshold, 1);
+        setSwipeProgress(Math.max(0, progress));
       }
 
-      // Сбрасываем состояние
-      setIsSwiping(false);
-      setSwipeProgress(0);
-      touchStartX.current = 0;
-      touchStartY.current = 0;
-      currentX.current = 0;
-      isSwipingRef.current = false;
-      hasDetectedDirection.current = false;
-      swipeDirection.current = null;
-      hasNavigatedRef.current = false;
-    };
+      setGesture((prev) => ({ ...prev, lastX: e.clientX, lastY: e.clientY }));
+    },
 
-    const handleTouchCancel = () => {
-      console.log('🚫 Touch cancelled');
-      setIsSwiping(false);
-      setSwipeProgress(0);
-      touchStartX.current = 0;
-      touchStartY.current = 0;
-      currentX.current = 0;
-      isSwipingRef.current = false;
-      hasDetectedDirection.current = false;
-      swipeDirection.current = null;
-      hasNavigatedRef.current = false;
-    };
+    onPointerUp: (e) => {
+      if (!enabled) return;
+      if (!gesture.active) return;
+      if (gesture.pointerId !== e.pointerId) return;
 
-    // Добавляем слушатели с passive: false для preventDefault
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd, { passive: true });
-    document.addEventListener('touchcancel', handleTouchCancel, { passive: true });
+      const deltaX = e.clientX - gesture.startX;
+      const deltaY = e.clientY - gesture.startY;
 
-    return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
-      document.removeEventListener('touchcancel', handleTouchCancel);
-    };
-  }, [enabled, threshold, velocity, navigate]);
+      // игнорируем вертикальные жесты
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        resetGesture();
+        return;
+      }
+
+      if (deltaX >= effectiveThreshold) {
+        try {
+          navigate(-1);
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.error('❌ Navigation error:', error);
+          }
+        }
+      }
+
+      resetGesture();
+    },
+
+    onPointerCancel: (e) => {
+      if (!enabled) return;
+      if (!gesture.active) return;
+      if (gesture.pointerId !== e.pointerId) return;
+      resetGesture();
+    },
+  };
 
   return {
+    handlers,
     isSwiping,
     swipeProgress,
   };

@@ -21,6 +21,38 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      customer_profiles: {
+        Row: {
+          id: string
+          telegram_id: number
+          first_name: string | null
+          last_name: string | null
+          email: string | null
+          phone: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          telegram_id: number
+          first_name?: string | null
+          last_name?: string | null
+          email?: string | null
+          phone?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          telegram_id?: number
+          first_name?: string | null
+          last_name?: string | null
+          email?: string | null
+          phone?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
       products: {
         Row: {
           id: string

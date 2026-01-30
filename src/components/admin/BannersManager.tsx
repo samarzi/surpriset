@@ -119,125 +119,137 @@ export function BannersManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full">
+      <div className="space-y-4 w-full md:pt-24">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Управление баннерами</h1>
-        <Button onClick={handleAdd} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Добавить баннер
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Управление баннерами</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Всего баннеров: {banners.length}</p>
+        </div>
+        <Button 
+          onClick={handleAdd} 
+          size="sm"
+          className="gap-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-black shadow-md h-8 text-xs px-3"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Добавить</span>
         </Button>
       </div>
 
       {banners.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground mb-4">Баннеров пока нет</p>
-            <Button onClick={handleAdd} className="gap-2">
+        <Card className="border-0 shadow-md">
+          <CardContent className="p-8 text-center">
+            <Image className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">Баннеров пока нет</p>
+            <Button 
+              onClick={handleAdd} 
+              className="gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-black shadow-md text-sm"
+            >
               <Plus className="h-4 w-4" />
               Добавить первый баннер
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-2">
           {banners.map((banner, index) => (
-            <Card key={banner.id}>
-              <CardContent className="p-6">
-                <div className="flex gap-6">
-                  {/* Banner Preview */}
-                  <div className="w-48 h-24 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex-shrink-0">
+            <Card key={banner.id} className="border-0 shadow-sm hover:shadow-md transition-all overflow-hidden group">
+              <CardContent className="!p-4">
+                <div className="flex gap-3">
+                  {/* Banner Preview - Компактный */}
+                  <div className="w-24 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
                     <img
                       src={banner.image}
                       alt={banner.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
                       onError={(e) => {
                         e.currentTarget.src = 'https://via.placeholder.com/300x150?text=Banner';
                       }}
                     />
                   </div>
 
-                  {/* Banner Info */}
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-lg">{banner.title}</h3>
+                  {/* Banner Info - Компактный */}
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm text-gray-900 dark:text-white truncate">{banner.title}</h3>
                         {banner.link && (
-                          <p className="text-sm text-muted-foreground">
-                            Ссылка: {banner.link}
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                            🔗 {banner.link}
                           </p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={banner.is_active ? 'default' : 'secondary'}>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <Badge 
+                          variant={banner.is_active ? 'default' : 'secondary'}
+                          className={`text-[9px] h-5 px-1.5 ${banner.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-0' : ''}`}
+                        >
                           {banner.is_active ? 'Активен' : 'Неактивен'}
                         </Badge>
-                        <Badge variant="outline">
-                          Порядок: {banner.order}
+                        <Badge variant="outline" className="text-[9px] h-5 px-1.5">
+                          #{banner.order}
                         </Badge>
                       </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-2">
+                    {/* Actions - Компактные кнопки */}
+                    <div className="flex gap-0.5 pt-0.5">
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleToggleActive(banner)}
-                        className="gap-1"
+                        className="h-7 px-2 text-[10px] hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600"
                       >
                         {banner.is_active ? (
                           <>
-                            <EyeOff className="h-3 w-3" />
-                            Скрыть
+                            <EyeOff className="h-3 w-3 mr-0.5" />
+                            <span className="hidden sm:inline">Скрыть</span>
                           </>
                         ) : (
                           <>
-                            <Eye className="h-3 w-3" />
-                            Показать
+                            <Eye className="h-3 w-3 mr-0.5" />
+                            <span className="hidden sm:inline">Показать</span>
                           </>
                         )}
                       </Button>
 
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleChangeOrder(banner, 'up')}
                         disabled={index === 0}
-                        className="gap-1"
+                        className="h-7 px-2 text-[10px] hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600"
                       >
                         <ArrowUp className="h-3 w-3" />
-                        Выше
                       </Button>
 
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleChangeOrder(banner, 'down')}
                         disabled={index === banners.length - 1}
-                        className="gap-1"
+                        className="h-7 px-2 text-[10px] hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600"
                       >
                         <ArrowDown className="h-3 w-3" />
-                        Ниже
                       </Button>
 
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(banner)}
-                        className="gap-1"
+                        className="h-7 px-2 text-[10px] hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600"
                       >
-                        <Edit className="h-3 w-3" />
-                        Изменить
+                        <Edit className="h-3 w-3 mr-0.5" />
+                        <span className="hidden sm:inline">Изменить</span>
                       </Button>
 
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(banner.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 gap-1"
+                        className="h-7 px-2 text-[10px] hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
                       >
                         <Trash2 className="h-3 w-3" />
-                        Удалить
                       </Button>
                     </div>
                   </div>
@@ -255,6 +267,7 @@ export function BannersManager() {
           onClose={handleFormClose}
         />
       )}
+      </div>
     </div>
   );
 }
