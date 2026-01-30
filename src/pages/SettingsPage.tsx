@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ProfileSettings from '@/components/ProfileSettings'
 import { getTelegramWebApp } from '@/utils/telegram'
+import { useBrowserAuth } from '@/hooks/useBrowserAuth'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
   const [telegramUser, setTelegramUser] = useState<any>(null)
+  const { user: browserUser } = useBrowserAuth()
 
   useEffect(() => {
     const tg = getTelegramWebApp()
@@ -41,19 +43,26 @@ export default function SettingsPage() {
 
         {/* Settings Content */}
         <div className="max-w-2xl mx-auto">
-          {telegramUser ? (
+          {(telegramUser || browserUser) ? (
             <ProfileSettings />
           ) : (
             <Card>
               <CardContent className="text-center py-8">
                 <p className="text-muted-foreground">
-                  Для доступа к настройкам необходимо войти через Telegram
+                  Для доступа к настройкам необходимо войти в профиль
                 </p>
                 <Button 
                   className="mt-4"
+                  onClick={() => navigate('/login')}
+                >
+                  Войти по паролю
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="mt-2 ml-2"
                   onClick={() => window.open('https://t.me/surpriset_bot', '_blank')}
                 >
-                  Открыть в Telegram
+                  Войти через Telegram
                 </Button>
               </CardContent>
             </Card>

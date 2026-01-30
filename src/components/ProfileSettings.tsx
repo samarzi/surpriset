@@ -7,6 +7,7 @@ import { Eye, EyeOff, Save, Key, User, Phone } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getTelegramWebApp } from '@/utils/telegram'
 import { mediumHaptic } from '@/utils/haptics'
+import { useBrowserAuth } from '@/hooks/useBrowserAuth'
 
 interface UserProfile {
   id: string
@@ -28,6 +29,7 @@ export default function ProfileSettings() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPasswordForm, setShowPasswordForm] = useState(false)
   const [message, setMessage] = useState('')
+  const { user: browserUser } = useBrowserAuth()
 
   useEffect(() => {
     loadProfile()
@@ -35,35 +37,49 @@ export default function ProfileSettings() {
 
   const loadProfile = async () => {
     try {
+      let userData = null
+
+      // Try Telegram user first
       const tg = getTelegramWebApp()
-      if (!tg?.initDataUnsafe?.user) return
-
-      const telegramUser = tg.initDataUnsafe.user
-      
-      // Check if user exists
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('*')
-        .eq('telegram_id', telegramUser.id)
-        .single()
-
-      if (existingUser) {
-        setProfile(existingUser)
-      } else {
-        // Create new user
-        const { data: newUser } = await supabase
+      if (tg?.initDataUnsafe?.user) {
+        const telegramUser = tg.initDataUnsafe.user
+        
+        const { data: existingUser } = await supabase
           .from('users')
-          .insert({
-            telegram_id: telegramUser.id,
-            telegram_username: telegramUser.username || '',
-            first_name: telegramUser.first_name || '',
-            last_name: telegramUser.last_name || '',
-          })
-          .select()
+          .select('*')
+          .eq('telegram_id', telegramUser.id)
           .single()
 
-        setProfile(newUser)
+        if (existingUser) {
+          userData = existingUser
+        } else {
+          // Create new user
+          const { data: newUser } = await supabase
+            .from('users')
+            .insert({
+              telegram_id: telegramUser.id,
+              telegram_username: telegramUser.username || '',
+              first_name: telegramUser.first_name || '',
+              last_name: telegramUser.last_name || '',
+            })
+            .select()
+            .single()
+
+          userData = newUser
+        }
+      } 
+      // Try browser user
+      else if (browserUser) {
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', browserUser.id)
+          .single()
+
+        userData = existingUser
       }
+
+      setProfile(userData)
     } catch (error) {
       console.error('Error loading profile:', error)
     } finally {
@@ -265,8 +281,13 @@ export default function ProfileSettings() {
             <div className="space-y-4">
               <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <p className="text-green-800 dark:text-green-200">
-                  ✓ Пароль установлен. Вы можете войти через браузер используя ваш email и пароль.
+                  ✓ Пароль установлен. Вы можете войти через браузер используя только пароль.
                 </p>
+                {browserUser && (
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-2">
+                    Текущий пароль сохранен в вашем браузере
+                  </p>
+                )}
               </div>
               
               <div className="flex gap-2">

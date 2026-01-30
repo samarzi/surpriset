@@ -23,6 +23,7 @@ const AdminPage = lazy(() => import('@/pages/AdminPage'))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const MyOrdersPage = lazy(() => import('@/pages/MyOrdersPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
+const TestSettingsPage = lazy(() => import('@/pages/TestSettingsPage'))
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 
@@ -125,6 +126,7 @@ function App() {
                           <Route path="/likes" element={<LikesPage />} />
                           <Route path="/profile" element={<ProfilePage />} />
                           <Route path="/profile/settings" element={<SettingsPage />} />
+                          <Route path="/profile/settings-test" element={<TestSettingsPage />} />
                           <Route path="/login" element={<LoginPage />} />
                           <Route path="/my-orders" element={<MyOrdersPage />} />
                           <Route path="/admin/*" element={<AdminPage />} />

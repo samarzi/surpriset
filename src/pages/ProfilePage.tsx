@@ -213,7 +213,7 @@ export default function ProfilePage() {
                       </Link>
                     </Button>
                     <Button asChild variant="outline" className="h-12">
-                      <Link to="/profile/settings">
+                      <Link to="/profile/settings-test">
                         <Settings className="w-4 h-4 mr-2" />
                         Настройки
                       </Link>
@@ -442,7 +442,7 @@ export default function ProfilePage() {
 
             <Card className="group cursor-pointer hover:border-primary/40 transition-all">
               <CardContent className="p-8 flex items-center justify-center">
-                <div className="flex flex-col items-center text-center gap-4">
+                <Link to="/profile/settings" className="flex flex-col items-center text-center gap-4">
                   <div className="w-14 h-14 rounded-xl bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/30 transition-colors">
                     <Settings className="w-7 h-7 text-purple-500" />
                   </div>
@@ -450,7 +450,7 @@ export default function ProfilePage() {
                     <h3 className="text-lg font-semibold mb-1">Настройки</h3>
                     <p className="text-sm text-muted-foreground">Управление профилем</p>
                   </div>
-                </div>
+                </Link>
               </CardContent>
             </Card>
           </div>
