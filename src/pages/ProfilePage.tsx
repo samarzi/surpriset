@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { adminService } from '@/lib/database'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { User, Heart, ShoppingBag, Settings, Shield, Gift } from 'lucide-react'
+import { User, Heart, ShoppingBag, Settings, Shield, Gift, LogOut } from 'lucide-react'
 import { getTelegramWebApp } from '@/utils/telegram'
 import { mediumHaptic } from '@/utils/haptics'
 import { useProfileStats } from '@/hooks/useProfileStats'
@@ -355,6 +355,24 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Logout Button for Browser Users */}
+          {isBrowserAuth && (
+            <div className="mt-6 mb-20">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  localStorage.removeItem('browser_user')
+                  localStorage.removeItem('browser_password')
+                  window.location.href = '/login'
+                }}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Выйти из профиля
+              </Button>
+            </div>
           )}
         </div>
 
