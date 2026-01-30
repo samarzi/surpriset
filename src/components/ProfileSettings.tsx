@@ -145,6 +145,7 @@ export default function ProfileSettings() {
       if (error) throw error
 
       setMessage('Пароль успешно установлен!')
+      localStorage.setItem('browser_password', newPassword) // Сохраняем новый пароль
       setShowPasswordForm(false)
       setNewPassword('')
       setConfirmPassword('')
@@ -178,6 +179,7 @@ export default function ProfileSettings() {
       if (error) throw error
 
       setMessage('Пароль успешно удален!')
+      localStorage.removeItem('browser_password') // Удаляем сохраненный пароль
       mediumHaptic()
       
       // Reload profile
@@ -284,9 +286,28 @@ export default function ProfileSettings() {
                   ✓ Пароль установлен. Вы можете войти через браузер используя только пароль.
                 </p>
                 {browserUser && (
-                  <p className="text-sm text-green-700 dark:text-green-300 mt-2">
-                    Текущий пароль сохранен в вашем браузере
-                  </p>
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-green-700 dark:text-green-300">
+                        Текущий пароль:
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="h-6 px-2 text-xs"
+                      >
+                        {showPassword ? 'Скрыть' : 'Показать'}
+                      </Button>
+                    </div>
+                    {showPassword && (
+                      <div className="p-2 bg-white dark:bg-gray-800 rounded border border-green-200 dark:border-green-700">
+                        <code className="text-sm text-green-800 dark:text-green-200">
+                          {localStorage.getItem('browser_password') || 'Пароль сохранен в браузере'}
+                        </code>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
               

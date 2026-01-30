@@ -100,6 +100,7 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
       }
 
       localStorage.setItem('browser_user', JSON.stringify(browserUser))
+      localStorage.setItem('browser_password', password) // Сохраняем пароль для отображения
       setUser(browserUser)
       setShowLogin(false)
       setPassword('')
@@ -115,6 +116,7 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
 
   const handleLogout = () => {
     localStorage.removeItem('browser_user')
+    localStorage.removeItem('browser_password')
     setUser(null)
     setMessage('')
   }
