@@ -1773,6 +1773,43 @@ main > div > .grid:first-child {
   -webkit-text-fill-color: #000000 !important;
 }
 
+/* ТЕМНАЯ ТЕМА: Белый текст для брендовых градиентов */
+.dark .bg-brand-gradient,
+.dark .bg-brand-gradient-light,
+.dark .bg-brand-gradient-dark,
+.dark [class*="bg-brand-gradient"],
+.dark .bg-primary,
+.dark [class*="bg-primary"],
+.dark [class*="bg-primary"] button,
+.dark [class*="bg-primary"] .btn,
+.dark [class*="bg-brand-gradient"] *,
+.dark [class*="bg-brand-gradient"] button,
+.dark [class*="bg-brand-gradient"] .btn,
+.dark [class*="bg-brand-gradient"] span,
+.dark [class*="bg-brand-gradient"] p,
+.dark [class*="bg-brand-gradient"] div,
+.dark [class*="bg-brand-gradient"] h1,
+.dark [class*="bg-brand-gradient"] h2,
+.dark [class*="bg-brand-gradient"] h3,
+.dark [class*="bg-brand-gradient"] h4,
+.dark [class*="bg-brand-gradient"] h5,
+.dark [class*="bg-brand-gradient"] h6,
+.dark [class*="bg-brand-gradient"] a,
+.dark [class*="bg-brand-gradient"] label,
+.dark [class*="bg-brand-gradient"] strong,
+.dark [class*="bg-brand-gradient"] b,
+.dark [class*="bg-brand-gradient"] em,
+.dark [class*="bg-brand-gradient"] i,
+.dark [class*="bg-brand-gradient"] .text-white,
+.dark [class*="bg-brand-gradient"] .text-gray-100,
+.dark [class*="bg-brand-gradient"] .text-gray-50,
+.dark [class*="bg-brand-gradient"] [class*="text-"],
+.dark [class*="bg-brand-gradient"] [class*="text-white"] {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
 /* Особое правило для админ-панели */
 .admin-panel .bg-brand-gradient,
 .admin-panel .bg-brand-gradient-light,
@@ -1781,6 +1818,18 @@ main > div > .grid:first-child {
 .admin-panel [class*="bg-brand-gradient"] button,
 .admin-panel [class*="bg-brand-gradient"] .btn {
   color: #000000 !important;
+}
+
+/* ТЕМНАЯ ТЕМА: Админ-панель белый текст на градиентах */
+.dark .admin-panel .bg-brand-gradient,
+.dark .admin-panel .bg-brand-gradient-light,
+.dark .admin-panel .bg-brand-gradient-dark,
+.dark .admin-panel [class*="bg-brand-gradient"] *,
+.dark .admin-panel [class*="bg-brand-gradient"] button,
+.dark .admin-panel [class*="bg-brand-gradient"] .btn {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 /* УНИВЕРСАЛЬНОЕ ПРАВИЛО: Все кнопки с ЛЮБЫМИ градиентами имеют черный текст */
@@ -1801,4 +1850,23 @@ button[class*="bg-gradient"] *,
   color: #000000 !important;
   text-shadow: none !important;
   -webkit-text-fill-color: #000000 !important;
+}
+
+/* ТЕМНАЯ ТЕМА: Белый текст на градиентах */
+.dark button[class*="bg-gradient"],
+.dark .btn[class*="bg-gradient"],
+.dark [class*="bg-gradient"] button,
+.dark [class*="bg-gradient"] .btn {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.dark button[class*="bg-gradient"] *,
+.dark .btn[class*="bg-gradient"] *,
+.dark [class*="bg-gradient"] button *,
+.dark [class*="bg-gradient"] .btn * {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
