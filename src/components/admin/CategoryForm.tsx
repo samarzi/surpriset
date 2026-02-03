@@ -98,7 +98,7 @@ export function CategoryForm({ category, onClose }: CategoryFormProps) {
             </div>
 
             <div className="flex gap-4">
-              <Button type="submit" disabled={loading} className="flex-1 bg-primary hover:bg-primary/90 text-black font-medium transition-all duration-200">
+              <Button type="submit" disabled={loading} className="flex-1 bg-primary hover:bg-primary/90 !text-black font-medium transition-all duration-200">
                 {category ? 'Обновить' : 'Создать'}
               </Button>
               <Button type="button" variant="outline" onClick={onClose}>

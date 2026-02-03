@@ -778,29 +778,136 @@ class OzonParser(MarketplaceParserInterface):
         return ""
 
     def _extract_images(self, product_data: Dict[str, Any], page: Page) -> list[str]:
-        """Извлекает изображения товара"""
+        """Извлекает изображения товара с устранением дубликатов - улучшенная версия"""
         images = []
+        seen_urls = set()  # Для отслеживания уже добавленных URL
+        seen_image_ids = set()  # Для отслеживания ID изображений (более надежно)
+        
+        def extract_image_id(url: str) -> str:
+            """Извлекает уникальный ID изображения из URL для более надежного сравнения"""
+            if not url or not isinstance(url, str):
+                return ""
+            
+            # Убираем все параметры и размеры, оставляем только базовый путь
+            base_url = url.split('?')[0]
+            
+            # Убираем все размеры и параметры CDN
+            clean_url = re.sub(r'/w\d+/', '/', base_url)
+            clean_url = re.sub(r'/h\d+/', '/', clean_url)
+            clean_url = re.sub(r'/wc\d+/', '/', clean_url)
+            clean_url = re.sub(r'/hc\d+/', '/', clean_url)
+            clean_url = re.sub(r'/resize/\d+x\d+/', '/', clean_url)
+            clean_url = re.sub(r'/\d+x\d+/', '/', clean_url)
+            
+            # Извлекаем имя файла как ID
+            if '/' in clean_url:
+                filename = clean_url.split('/')[-1]
+                # Убираем расширение для сравнения
+                if '.' in filename:
+                    return filename.split('.')[0]
+                return filename
+            
+            return clean_url
+        
+        def normalize_url(url: str) -> str:
+            """Нормализует URL для сравнения"""
+            if not url or not isinstance(url, str):
+                return ""
+            
+            # Убираем query параметры
+            base_url = url.split('?')[0]
+            
+            # Убираем размеры для сравнения
+            normalized = re.sub(r'/w\d+/', '/SIZE/', base_url)
+            normalized = re.sub(r'/h\d+/', '/SIZE/', normalized)
+            normalized = re.sub(r'/wc\d+/', '/SIZE/', normalized)
+            normalized = re.sub(r'/hc\d+/', '/SIZE/', normalized)
+            normalized = re.sub(r'/resize/\d+x\d+/', '/SIZE/', normalized)
+            normalized = re.sub(r'/\d+x\d+/', '/SIZE/', normalized)
+            
+            return normalized
+        
+        def upgrade_image_quality(url: str) -> str:
+            """Улучшает качество изображения, заменяя параметры размера на максимальные"""
+            if not url or not isinstance(url, str):
+                return url
+            
+            # Убираем query параметры
+            url = url.split('?')[0]
+            
+            # Для Ozon CDN заменяем размеры на максимальные
+            if 'cdn' in url or 'ozone' in url or 'ozon' in url:
+                # Заменяем все вхождения размеров на максимальные
+                url = re.sub(r'/w\d+/', '/wc1000/', url)
+                url = re.sub(r'/h\d+/', '/hc1000/', url)
+                url = re.sub(r'/wc\d+/', '/wc1000/', url)
+                url = re.sub(r'/hc\d+/', '/hc1000/', url)
+                url = re.sub(r'/resize/\d+x\d+/', '/wc1000/hc1000/', url)
+                url = re.sub(r'/\d+x\d+/', '/wc1000/hc1000/', url)
+            
+            return url
+        
+        def is_duplicate_image(url: str) -> bool:
+            """Проверяет, является ли изображение дубликатом, используя несколько методов"""
+            if not url or not isinstance(url, str) or not url.startswith('http'):
+                return True
+            
+            # Метод 1: Проверка по нормализованному URL
+            normalized = normalize_url(url)
+            if normalized in seen_urls:
+                print(f"🔄 Ozon: Дубликат по URL: {url}")
+                return True
+            
+            # Метод 2: Проверка по ID изображения (более надежно)
+            image_id = extract_image_id(url)
+            if image_id and image_id in seen_image_ids:
+                print(f"🔄 Ozon: Дубликат по ID '{image_id}': {url}")
+                return True
+            
+            # Метод 3: Проверка на очень похожие URL (разные размеры одного изображения)
+            for existing_url in seen_urls:
+                # Если URL отличаются только размерами, это дубликат
+                existing_clean = re.sub(r'/w\d+/|/h\d+/|/wc\d+/|/hc\d+/|/resize/\d+x\d+/|/\d+x\d+/', '/SIZE/', existing_url)
+                current_clean = re.sub(r'/w\d+/|/h\d+/|/wc\d+/|/hc\d+/|/resize/\d+x\d+/|/\d+x\d+/', '/SIZE/', normalized)
+                if existing_clean == current_clean:
+                    print(f"🔄 Ozon: Дубликат по очищенному URL: {url}")
+                    return True
+            
+            return False
+        
+        def add_unique_image(url: str, source: str = "") -> bool:
+            """Добавляет изображение только если оно уникально"""
+            if is_duplicate_image(url):
+                return False
+            
+            # Добавляем в множества для отслеживания
+            normalized = normalize_url(url)
+            image_id = extract_image_id(url)
+            
+            seen_urls.add(normalized)
+            if image_id:
+                seen_image_ids.add(image_id)
+            
+            upgraded_url = upgrade_image_quality(url)
+            images.append(upgraded_url)
+            print(f"✅ Ozon: Добавлено уникальное изображение {len(images)} из {source}: {upgraded_url}")
+            return True
         
         # Способ 1: Из данных продукта
         if product_data.get("images"):
-            for img in product_data["images"]:
+            print(f"🔍 Ozon: Обрабатываем {len(product_data['images'])} изображений из данных продукта")
+            for i, img in enumerate(product_data["images"]):
                 if isinstance(img, dict):
                     # Ищем оригинальные URL высокого качества
-                    url = img.get("original") or img.get("url") or img.get("src")
+                    url = img.get("original") or img.get("url") or img.get("src") or img.get("href")
                     if url:
-                        # Убираем параметры размера для получения оригинала
-                        if 'cdn' in url:
-                            url = url.split('?')[0]
-                            url = url.replace('/w200/', '/w2000/').replace('/h200/', '/h2000/')
-                        images.append(url)
+                        add_unique_image(url, f"JS-данные[{i}]")
                 elif isinstance(img, str):
-                    if 'cdn' in img:
-                        img = img.split('?')[0]
-                        img = img.replace('/w200/', '/w2000/').replace('/h200/', '/h2000/')
-                    images.append(img)
+                    add_unique_image(img, f"JS-данные[{i}]")
         
-        # Способ 2: Из DOM (улучшенная версия)
-        if not images or len(images) == 0:
+        # Способ 2: Из DOM - только если у нас мало изображений из JS
+        if len(images) < 3:
+            print(f"🔍 Ozon: У нас только {len(images)} изображений из JS, ищем дополнительные в DOM...")
             try:
                 dom_images = page.evaluate("""
                     () => {
@@ -813,33 +920,58 @@ class OzonParser(MarketplaceParserInterface):
                             '[class*="image"] img'
                         ];
                         const images = [];
+                        const seenSrcs = new Set();
+                        
                         for (const selector of imgSelectors) {
                             const imgEls = document.querySelectorAll(selector);
                             if (imgEls.length > 0) {
-                                Array.from(imgEls).forEach(img => {
+                                Array.from(imgEls).forEach((img, index) => {
                                     let src = img.getAttribute('data-src') || 
                                              img.getAttribute('data-original') ||
                                              img.getAttribute('data-lazy') ||
+                                             img.getAttribute('srcset')?.split(' ')[0] ||
                                              img.src;
-                                    // Убираем параметры размера для получения оригинала
-                                    if (src && src.includes('cdn')) {
-                                        src = src.split('?')[0];
-                                        src = src.replace(/\\/w\\d+\\//, '/w2000/').replace(/\\/h\\d+\\//, '/h2000/');
-                                    }
-                                    if (src && !images.includes(src) && !src.includes('data:image') && src.startsWith('http')) {
-                                        images.push(src);
+                                    
+                                    if (src && src.startsWith('http') && !src.includes('data:image')) {
+                                        // Убираем параметры для проверки дубликатов
+                                        const cleanSrc = src.split('?')[0];
+                                        const normalizedSrc = cleanSrc.replace(/\\/w\\d+\\/|\\/h\\d+\\/|\\/wc\\d+\\/|\\/hc\\d+\\//g, '/SIZE/');
+                                        
+                                        if (!seenSrcs.has(normalizedSrc)) {
+                                            seenSrcs.add(normalizedSrc);
+                                            images.push(src);
+                                        }
                                     }
                                 });
                                 if (images.length > 0) break;
                             }
                         }
-                        return images.slice(0, 20);
+                        return images.slice(0, 15);
                     }
                 """)
                 if dom_images:
-                    images.extend(dom_images)
+                    print(f"🔍 Ozon: Обрабатываем {len(dom_images)} изображений из DOM")
+                    for i, dom_img in enumerate(dom_images):
+                        add_unique_image(dom_img, f"DOM[{i}]")
             except Exception as e:
-                print(f"DOM images extraction error: {e}")
+                print(f"⚠️ Ozon: DOM images extraction error: {e}")
                 pass
+        else:
+            print(f"🔍 Ozon: У нас уже {len(images)} изображений из JS, пропускаем DOM")
         
-        return images[:3]  # Максимум 3 изображения
+        # Финальная проверка на дубликаты по содержимому URL
+        final_images = []
+        final_seen = set()
+        
+        for img_url in images:
+            # Создаем "отпечаток" изображения для финальной проверки
+            fingerprint = re.sub(r'/w\d+/|/h\d+/|/wc\d+/|/hc\d+/|/resize/\d+x\d+/|/\d+x\d+/', '/SIZE/', img_url.split('?')[0])
+            
+            if fingerprint not in final_seen:
+                final_seen.add(fingerprint)
+                final_images.append(img_url)
+            else:
+                print(f"🔄 Ozon: Финальная фильтрация дубликата: {img_url}")
+        
+        print(f"✅ Ozon: Итого уникальных изображений после всех проверок: {len(final_images)}")
+        return final_images[:10]  # Максимум 10 изображений

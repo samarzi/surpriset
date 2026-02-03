@@ -55,32 +55,52 @@ export function BannerCarousel({ banners, loading }: BannerCarouselProps) {
 
   // Добавляем обработку свайпов для мобильных устройств
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isHorizontalSwipe, setIsHorizontalSwipe] = useState(false);
 
   const minSwipeDistance = 50;
 
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
+    setTouchStartY(e.targetTouches[0].clientY);
+    setIsHorizontalSwipe(false);
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    if (touchStart === null || touchStartY === null) return;
+
+    const currentX = e.targetTouches[0].clientX;
+    const currentY = e.targetTouches[0].clientY;
+    const deltaX = Math.abs(currentX - touchStart);
+    const deltaY = Math.abs(currentY - touchStartY);
+
+    // Если горизонтальное движение больше вертикального — это свайп баннера
+    if (deltaX > deltaY && deltaX > 10) {
+      setIsHorizontalSwipe(true);
+      // Блокируем вертикальный скролл страницы
+      e.preventDefault();
+    }
+
+    setTouchEnd(currentX);
   };
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
-    
+
     if (isLeftSwipe) {
       handleNext();
     }
     if (isRightSwipe) {
       handlePrevious();
     }
+
+    setIsHorizontalSwipe(false);
   };
 
   const handleSideBannerClick = (direction: 'prev' | 'next') => {
@@ -94,7 +114,7 @@ export function BannerCarousel({ banners, loading }: BannerCarouselProps) {
   // Автопереключение каждые 5 секунд
   useEffect(() => {
     if (banners.length <= 1) return;
-    
+
     const interval = setInterval(() => {
       handleNext();
     }, 5000);
@@ -137,9 +157,8 @@ export function BannerCarousel({ banners, loading }: BannerCarouselProps) {
           <img
             src={banner.image}
             alt={banner.title}
-            className={`w-full h-full transition-opacity duration-300 ${
-              isLoaded ? 'opacity-100' : 'opacity-0'
-            } object-cover`}
+            className={`w-full h-full transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'
+              } object-cover`}
             style={{
               objectFit: 'cover',
               objectPosition: 'center',
@@ -160,17 +179,18 @@ export function BannerCarousel({ banners, loading }: BannerCarouselProps) {
   };
 
   return (
-    <section 
-      className="py-2 sm:py-3"
+    <section
+      className="py-0 sm:py-3"
+      style={{ touchAction: 'pan-x' }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
       <div className="container px-3 sm:px-4 max-w-[1400px]">
         {/* Баннеры как на Яндекс Маркете: большой широкий в центре + маленькие по бокам на ПК */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-2 lg:mb-6">
           {/* Левый маленький баннер - только на ПК */}
-          <div 
+          <div
             className="hidden lg:block cursor-pointer"
             onClick={() => handleSideBannerClick('prev')}
           >
@@ -192,7 +212,7 @@ export function BannerCarousel({ banners, loading }: BannerCarouselProps) {
           </div>
 
           {/* Правый маленький баннер - только на ПК */}
-          <div 
+          <div
             className="hidden lg:block cursor-pointer"
             onClick={() => handleSideBannerClick('next')}
           >
@@ -209,11 +229,10 @@ export function BannerCarousel({ banners, loading }: BannerCarouselProps) {
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                  index === currentIndex 
-                    ? 'bg-primary scale-125' 
-                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                }`}
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${index === currentIndex
+                  ? 'bg-primary scale-125'
+                  : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                  }`}
                 aria-label={`Перейти к баннеру ${index + 1}`}
               />
             ))}

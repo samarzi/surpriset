@@ -23,43 +23,62 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-modern">
-      {/* Banner Carousel */}
-      {banners.length > 0 && (
+      {/* Banner Carousel - загружается первым */}
+      {bannersLoading ? (
+        <section className="py-0 sm:py-3">
+          <div className="container px-3 sm:px-4 max-w-[1400px]">
+            <div className="hidden lg:grid grid-cols-4 gap-4 mb-6">
+              <div className="h-[320px] rounded-xl bg-muted animate-pulse" />
+              <div className="col-span-2 h-[320px] rounded-xl bg-muted animate-pulse" />
+              <div className="h-[320px] rounded-xl bg-muted animate-pulse" />
+            </div>
+            <div className="lg:hidden h-[200px] sm:h-[280px] rounded-xl bg-muted animate-pulse" />
+          </div>
+        </section>
+      ) : banners.length > 0 ? (
         <div className="border-b border-border/50">
           <BannerCarousel banners={banners} loading={bannersLoading} />
         </div>
+      ) : null}
+
+      {/* Featured Products - показываем ТОЛЬКО после загрузки баннеров */}
+      {!bannersLoading && (
+        <>
+          <section className="pt-0 pb-1 sm:py-1.5 lg:py-2">
+            <div className="container px-2 sm:px-3 lg:px-4">
+              {productsLoading && featuredProducts.length === 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-6">
+                  {Array.from({ length: 12 }).map((_, index) => (
+                    <div key={index} className="h-40 sm:h-48 lg:h-64 rounded-xl bg-muted animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-6">
+                  {featuredProducts.slice(0, 12).map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-8 sm:mt-10 lg:mt-12 text-center px-4">
+                <Button 
+                  size="lg" 
+                  className="btn-catalog-premium group w-full sm:w-full md:w-full lg:w-full max-w-2xl mx-auto h-14 sm:h-16 text-base sm:text-lg font-extrabold shadow-2xl hover:shadow-primary/50 transition-all duration-500" 
+                  asChild
+                >
+                  <Link to="/catalog" className="flex items-center justify-center gap-3">
+                    <span className="text-black">Весь каталог</span>
+                    <ArrowRight className="h-6 w-6 text-black transition-transform duration-300 group-hover:translate-x-2" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          {/* How It Works Section */}
+          <HowItWorksSection />
+        </>
       )}
-
-      {/* Featured Products */}
-      <section className="py-1 sm:py-1.5 lg:py-2">
-        <div className="container px-2 sm:px-3 lg:px-4">
-          {productsLoading && featuredProducts.length === 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-6">
-              {Array.from({ length: 12 }).map((_, index) => (
-                <div key={index} className="h-40 sm:h-48 lg:h-64 rounded-xl bg-muted animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-6">
-              {featuredProducts.slice(0, 12).map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
-
-          <div className="mt-3 sm:mt-4 lg:mt-6 text-center">
-            <Button size="lg" variant="outline" className="button-with-icon group" asChild>
-              <Link to="/catalog">
-                <span>Весь каталог</span>
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <HowItWorksSection />
     </div>
   );
 }

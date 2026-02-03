@@ -152,8 +152,8 @@ class YandexMarketParser(MarketplaceParserInterface):
                 else:
                     print("⚠️ Яндекс Маркет: Изображения не найдены")
             
-            # Ограничиваем до 3 изображений для Яндекс Маркета
-            images = images[:3] if images else []
+            # Ограничиваем до 10 изображений для Яндекс Маркета
+            images = images[:10] if images else []
 
             # Извлекаем характеристики
             characteristics = self._extract_characteristics(product_data)
@@ -751,43 +751,75 @@ class YandexMarketParser(MarketplaceParserInterface):
         """Извлекает изображения товара"""
         images = []
         
+        def upgrade_image_quality(url: str) -> str:
+            """Улучшает качество изображения, заменяя параметры размера на максимальные"""
+            if not url or not isinstance(url, str):
+                return url
+            
+            # Убираем query параметры
+            url = url.split('?')[0]
+            
+            # Для Yandex Market заменяем размеры на максимальные
+            if 'market.yandex' in url or 'mdata.yandex' in url or 'avatars.mds.yandex' in url:
+                # Заменяем размеры на orig (оригинал) или большие размеры
+                url = re.sub(r'/\d+x\d+/', '/orig/', url)
+                url = re.sub(r'/w\d+/', '/w2000/', url)
+                url = re.sub(r'/h\d+/', '/h2000/', url)
+            
+            return url
+        
         # Способ 1: Из данных продукта
         if product_data.get("images"):
             for img in product_data["images"]:
                 if isinstance(img, dict):
                     if img.get("url"):
-                        images.append(img["url"])
+                        images.append(upgrade_image_quality(img["url"]))
                     elif img.get("original"):
-                        images.append(img["original"])
+                        images.append(upgrade_image_quality(img["original"]))
                 elif isinstance(img, str):
-                    images.append(img)
+                    images.append(upgrade_image_quality(img))
         
         if product_data.get("pictures"):
             for pic in product_data["pictures"]:
                 if isinstance(pic, dict):
                     if pic.get("url"):
-                        images.append(pic["url"])
+                        images.append(upgrade_image_quality(pic["url"]))
                     elif pic.get("original"):
-                        images.append(pic["original"])
+                        images.append(upgrade_image_quality(pic["original"]))
                 elif isinstance(pic, str):
-                    images.append(pic)
+                    images.append(upgrade_image_quality(pic))
         
-        # Способ 2: Из DOM
-        if not images:
-            try:
-                dom_images = page.evaluate("""
-                    () => {
-                        const imgEls = document.querySelectorAll('[data-zone-name="productGallery"] img, .product-gallery img, .product-slider img');
-                        return Array.from(imgEls)
-                            .map(img => img.src || img.getAttribute('data-src') || img.getAttribute('data-lazy'))
-                            .filter(Boolean)
-                            .slice(0, 20);
-                    }
-                """)
-                if dom_images and isinstance(dom_images, list):
-                    images.extend(dom_images)
-            except Exception:
-                pass
+        # Способ 2: Из DOM - ВСЕГДА проверяем DOM для дополнительных изображений
+        try:
+            dom_images = page.evaluate("""
+                () => {
+                    const imgEls = document.querySelectorAll('[data-zone-name="productGallery"] img, .product-gallery img, .product-slider img');
+                    return Array.from(imgEls)
+                        .map(img => {
+                            let src = img.src || img.getAttribute('data-src') || img.getAttribute('data-lazy');
+                            // Улучшаем качество - заменяем размеры на максимальные
+                            if (src && (src.includes('market.yandex') || src.includes('mdata.yandex') || src.includes('avatars.mds.yandex'))) {
+                                src = src.split('?')[0];
+                                src = src.replace(/\\/\\d+x\\d+\\//g, '/orig/');
+                                src = src.replace(/\\/w\\d+\\//g, '/w2000/');
+                                src = src.replace(/\\/h\\d+\\//g, '/h2000/');
+                            }
+                            return src;
+                        })
+                        .filter(Boolean)
+                        .slice(0, 20);
+                }
+            """)
+            if dom_images and isinstance(dom_images, list):
+                # Добавляем DOM изображения, избегая дубликатов
+                for dom_img in dom_images:
+                    upgraded_img = upgrade_image_quality(dom_img)
+                    if upgraded_img not in images:
+                        images.append(upgraded_img)
+                print(f"✅ Яндекс Маркет: Добавлено {len(dom_images)} изображений из DOM, всего: {len(images)}")
+        except Exception as e:
+            print(f"⚠️ Яндекс Маркет: DOM images extraction error: {e}")
+            pass
         
-        # Ограничиваем до 3 изображений для Яндекс Маркета
-        return images[:3] if images else []
+        # Ограничиваем до 10 изображений для Яндекс Маркета
+        return images[:10] if images else []

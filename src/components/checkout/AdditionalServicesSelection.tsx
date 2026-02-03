@@ -108,7 +108,7 @@ export default function AdditionalServicesSelection({
                         </div>
                       )}
                       {isSelected && (
-                        <span className="absolute right-1 top-1 rounded-full bg-primary p-1 text-white shadow">
+                        <span className="absolute right-1 top-1 rounded-full bg-primary p-1 text-black shadow">
                           <Check className="h-3 w-3" />
                         </span>
                       )}

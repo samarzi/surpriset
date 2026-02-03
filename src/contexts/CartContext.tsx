@@ -30,7 +30,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
-        
+
         const newTotal = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const newItemCount = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -75,7 +75,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
     case 'UPDATE_QUANTITY': {
       const { productId, quantity } = action.payload;
-      
+
       if (quantity <= 0) {
         return cartReducer(state, { type: 'REMOVE_ITEM', payload: { productId } });
       }

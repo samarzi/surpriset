@@ -214,7 +214,7 @@ export function ServiceForm({ service, categories, onClose }: ServiceFormProps) 
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button type="submit" disabled={loading || categories.length === 0} className="flex-1 bg-primary hover:bg-primary/90 text-black font-medium transition-all duration-200">
+                <Button type="submit" disabled={loading || categories.length === 0} className="flex-1 bg-primary hover:bg-primary/90 !text-black font-medium transition-all duration-200">
                   {service ? 'Обновить' : 'Создать'}
                 </Button>
                 <Button type="button" variant="outline" onClick={onClose}>

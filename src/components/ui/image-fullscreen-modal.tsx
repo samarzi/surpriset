@@ -88,6 +88,7 @@ export function ImageFullscreenModal({ images, initialIndex, isOpen, onClose }: 
 
   const modal = (
     <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center">
+      {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
         <div className="flex items-center gap-2 text-white">
           <span className="text-sm font-medium">
@@ -125,6 +126,7 @@ export function ImageFullscreenModal({ images, initialIndex, isOpen, onClose }: 
         </div>
       </div>
 
+      {/* Navigation buttons */}
       {images.length > 1 && (
         <>
           <Button
@@ -147,6 +149,7 @@ export function ImageFullscreenModal({ images, initialIndex, isOpen, onClose }: 
         </>
       )}
 
+      {/* Main image */}
       <div className="relative w-full h-full flex items-center justify-center p-16">
         {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -166,6 +169,7 @@ export function ImageFullscreenModal({ images, initialIndex, isOpen, onClose }: 
         />
       </div>
 
+      {/* Bottom indicators */}
       {images.length > 1 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 rounded-full px-4 py-2">
           {images.map((_, index) => (
@@ -186,6 +190,7 @@ export function ImageFullscreenModal({ images, initialIndex, isOpen, onClose }: 
         </div>
       )}
 
+      {/* Touch/swipe handlers for mobile */}
       <div
         className="absolute inset-0 touch-pan-x"
         onTouchStart={(e) => {
@@ -199,9 +204,11 @@ export function ImageFullscreenModal({ images, initialIndex, isOpen, onClose }: 
             const deltaTime = Date.now() - startTime;
             const velocity = Math.abs(deltaX) / deltaTime;
             
+            // Swipe left - next image
             if (deltaX < -50 || (deltaX < -20 && velocity > 0.3)) {
               handleNext();
             }
+            // Swipe right - previous image
             else if (deltaX > 50 || (deltaX > 20 && velocity > 0.3)) {
               handlePrevious();
             }

@@ -99,7 +99,7 @@ export default function PackagingSelectionModal({
                           className="w-full h-full object-cover"
                         />
                         {selectedId === packaging.id && (
-                          <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-1">
+                          <div className="absolute top-2 right-2 bg-primary text-black rounded-full p-1">
                             <Check className="h-4 w-4" />
                           </div>
                         )}

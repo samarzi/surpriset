@@ -104,10 +104,10 @@ export default function HowItWorksSection() {
                         </div>
                         
                         {/* Content */}
-                        <h3 className="text-xs lg:text-sm font-bold text-center mb-1 lg:mb-1.5 leading-tight">
+                        <h3 className="text-xs lg:text-sm font-bold text-center mb-1 lg:mb-1.5 leading-tight text-foreground dark:text-white">
                           {step.title}
                         </h3>
-                        <p className="text-[10px] lg:text-xs text-muted-foreground text-center leading-snug">
+                        <p className="text-[10px] lg:text-xs text-muted-foreground dark:text-gray-300 text-center leading-snug">
                           {step.description}
                         </p>
                       </div>
@@ -145,10 +145,10 @@ export default function HowItWorksSection() {
                     
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-bold mb-0.5 leading-tight">
+                      <h3 className="text-sm font-bold mb-0.5 leading-tight text-foreground dark:text-white">
                         {step.title}
                       </h3>
-                      <p className="text-[11px] text-muted-foreground leading-snug">
+                      <p className="text-[11px] text-muted-foreground dark:text-gray-300 leading-snug">
                         {step.description}
                       </p>
                     </div>

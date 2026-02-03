@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { adminService } from '@/lib/database'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { User, Heart, ShoppingBag, Settings, Shield, Gift, LogOut } from 'lucide-react'
+import { User, Heart, ShoppingBag, Settings, Shield, LogOut } from 'lucide-react'
 import { getTelegramWebApp } from '@/utils/telegram'
 import { mediumHaptic } from '@/utils/haptics'
 import { useProfileStats } from '@/hooks/useProfileStats'
@@ -150,6 +150,22 @@ export default function ProfilePage() {
                 <Card className="mobile-compact-card group cursor-pointer hover:bg-muted/50 transition-colors">
                   <CardContent className="!p-4 flex items-center">
                     <div className="flex items-center gap-2 w-full">
+                      <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center flex-shrink-0">
+                        <Shield className="w-4 h-4 text-orange-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[11px] font-semibold mb-1">Админка</h3>
+                        <Button variant="ghost" size="sm" asChild className="h-5 px-2 text-[9px] w-full">
+                          <Link to="/admin">Открыть</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="mobile-compact-card group cursor-pointer hover:bg-muted/50 transition-colors">
+                  <CardContent className="!p-4 flex items-center">
+                    <div className="flex items-center gap-2 w-full">
                       <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center flex-shrink-0">
                         <Settings className="w-4 h-4 text-purple-500" />
                       </div>
@@ -178,7 +194,7 @@ export default function ProfilePage() {
                     {browserUser?.first_name} {browserUser?.last_name}
                   </h1>
                   <p className="text-xl text-muted-foreground mb-8">{browserUser?.email}</p>
-                  
+
                   <div className="grid md:grid-cols-3 gap-6 mb-8">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-primary">
@@ -236,7 +252,7 @@ export default function ProfilePage() {
       <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-3 sm:py-6 lg:py-10">
         {/* Unified Profile Design */}
         <div className="max-w-xs mx-auto space-y-3">
-          
+
           {/* Profile Header - Ultra Compact */}
           <Card className="mobile-compact-card">
             <CardContent className="!p-4">
@@ -245,7 +261,7 @@ export default function ProfilePage() {
                 <div className="w-10 h-10 rounded-full bg-brand-gradient flex items-center justify-center text-sm font-bold text-black">
                   {user.first_name?.[0]?.toUpperCase() || 'U'}
                 </div>
-                
+
                 {/* User Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1 mb-0.5">
@@ -358,12 +374,12 @@ export default function ProfilePage() {
             </Card>
           )}
 
-          {/* Logout Button for Browser Users */}
+          {/* Logout Button for Browser Users - Moved to bottom before navigation */}
           {isBrowserAuth && (
-            <div className="mt-6 mb-20">
-              <Button 
-                variant="outline" 
-                className="w-full"
+            <div className="fixed bottom-20 left-0 right-0 px-4 pb-4 z-40">
+              <Button
+                variant="outline"
+                className="w-full h-12 text-red-600 border-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 dark:border-red-800 dark:text-red-400"
                 onClick={() => {
                   localStorage.removeItem('browser_user')
                   localStorage.removeItem('browser_password')
@@ -377,7 +393,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-              </div>
+      </div>
     </div>
   )
 }

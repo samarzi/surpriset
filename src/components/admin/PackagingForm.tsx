@@ -217,7 +217,7 @@ export function PackagingForm({ packaging, onClose }: PackagingFormProps) {
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button type="submit" disabled={loading} className="flex-1 bg-primary hover:bg-primary/90 text-black font-medium transition-all duration-200">
+                <Button type="submit" disabled={loading} className="flex-1 bg-primary hover:bg-primary/90 !text-black font-medium transition-all duration-200">
                   {packaging ? 'Обновить' : 'Создать'}
                 </Button>
                 <Button type="button" variant="outline" onClick={onClose}>

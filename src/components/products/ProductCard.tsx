@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Heart, Sparkles, Plus } from 'lucide-react';
+import { ShoppingCart, Heart, Sparkles } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Product } from '@/types';
@@ -16,11 +16,11 @@ interface ProductCardProps {
   onAddToBundle?: (product: Product) => void;
 }
 
-export function ProductCard({ 
-  product, 
-  showAddToCart = true, 
+export function ProductCard({
+  product,
+  showAddToCart = true,
   showAddToBundle = true,
-  onAddToBundle 
+  onAddToBundle
 }: ProductCardProps) {
   const { addItem } = useCart();
   const { toggleLike, isLiked } = useLikes();
@@ -28,10 +28,10 @@ export function ProductCard({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Вибрация при клике
     mediumHaptic();
-    
+
     if (product.status !== 'in_stock') {
       toast.error('Товар недоступен для заказа');
       return;
@@ -45,14 +45,14 @@ export function ProductCard({
   const handleToggleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const wasLiked = isLiked(product.id);
-    
+
     try {
       await toggleLike(product.id);
       toast.success(
-        wasLiked 
-          ? 'Товар удален из избранного' 
+        wasLiked
+          ? 'Товар удален из избранного'
           : 'Товар добавлен в избранное'
       );
     } catch {
@@ -63,10 +63,10 @@ export function ProductCard({
   const handleAddToBundle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Вибрация при клике
     mediumHaptic();
-    
+
     if (product.type !== 'product') {
       toast.error('В набор можно добавлять только отдельные товары');
       return;
@@ -79,9 +79,6 @@ export function ProductCard({
 
     if (onAddToBundle) {
       onAddToBundle(product);
-    } else {
-      // Используем контекст CustomBundle для добавления товара
-      addProduct(product);
       successHaptic(); // Вибрация успеха
       toast.success('Товар добавлен в набор');
     }
@@ -110,8 +107,8 @@ export function ProductCard({
   const liked = isLiked(product.id);
 
   return (
-    <Card 
-      data-testid="product-card" 
+    <Card
+      data-testid="product-card"
       className="product-card modern-card group relative overflow-hidden"
     >
       {/* Image Container */}
@@ -123,45 +120,45 @@ export function ProductCard({
             className="h-full w-full object-cover"
             loading="lazy"
           />
-          
+
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </Link>
-        
+
         {/* Status Badge */}
         {getStatusBadge()}
-        
+
         {/* Like Button - Outside Link */}
         <Button
           size="icon"
           variant="glass"
           onClick={handleToggleLike}
-          className={`absolute top-2 left-2 w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 z-10 transition-colors duration-300 ${
-            liked 
-              ? 'bg-red-500/90 text-white hover:bg-red-600/90' 
-              : 'hover:bg-white/20'
-          }`}
+          className={`absolute top-2 left-2 w-10 h-10 sm:w-8 sm:h-8 lg:w-10 lg:h-10 z-10 transition-colors duration-300 rounded-full ${liked
+            ? 'bg-red-500/90 text-white hover:bg-red-600/90'
+            : 'bg-white/20 dark:bg-gray-800/40 hover:bg-white/30 dark:hover:bg-gray-700/50'
+            }`}
         >
-          <Heart className={`h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 ${liked ? 'fill-current' : ''}`} />
+          <Heart className={`h-5 w-5 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 ${liked ? 'fill-current text-white' : 'text-white dark:text-white'}`} />
         </Button>
-        
+
         {/* Product Type Badge - Moved to top */}
+        {/* Product Type Badge - Moved to bottom center */}
         {product.type === 'bundle' && (
-          <div className="absolute top-2 left-12 sm:left-14 lg:left-16 flex items-center gap-1 bg-primary/90 backdrop-blur-sm text-black px-2 py-1 rounded-full z-10">
-            <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-            <span className="text-[9px] sm:text-xs font-semibold">
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-primary/90 backdrop-blur-sm !text-black px-2 py-1 rounded-full z-10 w-max shadow-sm">
+            <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 !text-black" />
+            <span className="text-[9px] sm:text-xs font-semibold !text-black">
               Готовый набор
             </span>
           </div>
         )}
-        
+
         {/* Tags */}
-        {product.tags.length > 0 && (
+        {product.tags && product.tags.length > 0 && (
           <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
-            {product.tags.slice(0, 2).map((tag, index) => (
+            {product.tags.slice(0, 2).map((tag: string, index: number) => (
               <span
                 key={index}
-                className="bg-brand-gradient text-black px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-[9px] sm:text-xs font-semibold shadow-lg"
+                className="bg-brand-gradient !text-black px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-[9px] sm:text-xs font-semibold shadow-lg"
               >
                 {tag}
               </span>
@@ -175,23 +172,23 @@ export function ProductCard({
         <CardContent className="!p-3 sm:!p-4">
           <div className="space-y-1 sm:space-y-1.5">
             {/* Product Name */}
-            <h3 className="font-semibold text-[11px] sm:text-xs lg:text-sm line-clamp-2 group-hover:text-primary transition-colors leading-tight min-h-[2.2em]">
+            <h3 className="font-bold text-xs sm:text-sm lg:text-base line-clamp-2 group-hover:text-primary transition-colors leading-tight min-h-[2.2em] text-foreground dark:text-white">
               {product.name}
             </h3>
 
             {/* Price */}
             <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm sm:text-base lg:text-lg font-bold text-foreground">
+                <span className="text-base sm:text-lg lg:text-xl font-extrabold text-foreground dark:text-white">
                   {formatPrice(product.price)}
                 </span>
                 {product.original_price && product.original_price > product.price && (
-                  <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
+                  <span className="text-xs sm:text-sm text-muted-foreground line-through opacity-75">
                     {formatPrice(product.original_price)}
                   </span>
                 )}
               </div>
-              
+
             </div>
           </div>
         </CardContent>
@@ -221,18 +218,18 @@ export function ProductCard({
             size="sm"
             onClick={handleAddToCart}
             disabled={!isAvailable}
-            className="flex-1 text-[10px] py-1 h-6 rounded-lg bg-brand-gradient hover:bg-brand-gradient-dark text-black font-semibold no-lift important-button"
+            className="flex-1 text-xs py-1.5 h-7 rounded-lg bg-brand-gradient hover:bg-brand-gradient-dark text-black font-bold no-lift important-button"
             title={isAvailable ? 'В корзину' : 'Недоступно'}
           >
-            <ShoppingCart className="h-2.5 w-2.5 mr-1" />
+            <ShoppingCart className="h-3 w-3 mr-1" />
             <span>В корзину</span>
           </Button>
         )}
 
         {/* Показываем сообщение о недоступности для товаров не в наличии */}
         {product.status !== 'in_stock' && (
-          <div className="flex-1 text-[10px] py-1 h-6 rounded-lg bg-red-100 border border-red-200 flex items-center justify-center">
-            <span className="text-red-600 font-medium">Недоступно</span>
+          <div className="flex-1 text-xs py-1.5 h-7 rounded-lg bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 flex items-center justify-center">
+            <span className="text-red-700 dark:text-red-300 font-bold">Недоступно</span>
           </div>
         )}
       </div>

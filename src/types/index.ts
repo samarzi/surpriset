@@ -11,6 +11,7 @@ export interface Product {
   price: number;
   original_price?: number | null; // Для скидок (snake_case для DB)
   images: string[]; // Массив URL изображений
+  tags: string[]; // Массив тегов (максимум 3)
   category_ids?: string[]; // Массив ID категорий (максимум 3)
   status: ProductStatus;
   type: ProductType;
@@ -179,7 +180,7 @@ export interface ProductFilters {
   status?: ProductStatus[];
   type?: ProductType[];
   categories?: string[];
-  sortBy?: 'price_asc' | 'price_desc' | 'newest' | 'popular';
+  sortBy?: 'price_asc' | 'price_desc' | 'newest' | 'popular' | 'random';
   limit?: number;
   offset?: number;
 }

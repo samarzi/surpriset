@@ -198,7 +198,7 @@ export function CategoryManager({
               <FolderOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white">Управление категориями</h3>
+              <h3 className="text-base font-semibold text-foreground dark:text-white">Управление категориями</h3>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 font-normal">Организация товаров</p>
             </div>
           </div>
@@ -316,7 +316,7 @@ export function CategoryManager({
                           <div className="p-1 bg-blue-100 dark:bg-blue-900/30 rounded-md">
                             <FolderOpen className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                           </div>
-                          <h3 className="font-semibold text-xs text-gray-900 dark:text-white truncate">{category.name}</h3>
+                          <h3 className="font-semibold text-xs text-foreground dark:text-white truncate">{category.name}</h3>
                           <Badge variant="secondary" className="text-[9px] bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 h-4 px-1.5">
                             {category.id.slice(0, 8)}
                           </Badge>

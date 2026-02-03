@@ -13,7 +13,7 @@ interface LikesContextType {
 
 const LikesContext = createContext<LikesContextType | undefined>(undefined);
 
-type LikesAction = 
+type LikesAction =
   | { type: 'TOGGLE_LIKE'; productId: string }
   | { type: 'SET_LIKES'; likes: Set<string> }
   | { type: 'SET_LOADING'; loading: boolean }
@@ -120,18 +120,18 @@ export function LikesProvider({ children }: { children: React.ReactNode }) {
   const toggleLike = async (productId: string) => {
     const userSession = getUserSession();
     const wasLiked = state.likedProducts.has(productId);
-    
+
     // Оптимистично обновляем UI и ЛОКАЛЬНО сохраняем лайк,
     // даже если Supabase недоступен. Так пользователь видит, что лайк сработал.
     dispatch({ type: 'TOGGLE_LIKE', productId });
-    
+
     try {
       if (wasLiked) {
         await likesService.removeLike(productId, userSession);
       } else {
         await likesService.addLike(productId, userSession);
       }
-      
+
       // Попросим продукты перезагрузиться, чтобы likes_count подтянулся, если бэкенд обновился
       dispatch({ type: 'REFRESH_PRODUCTS' });
     } catch (error) {

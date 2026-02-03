@@ -123,13 +123,13 @@ export function BannersManager() {
       <div className="space-y-4 w-full md:pt-24">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Управление баннерами</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground dark:text-white">Управление баннерами</h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Всего баннеров: {banners.length}</p>
         </div>
         <Button 
           onClick={handleAdd} 
           size="sm"
-          className="gap-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-black shadow-md h-8 text-xs px-3"
+          className="gap-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 !text-black shadow-md h-8 text-xs px-3"
         >
           <Plus className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Добавить</span>
@@ -143,7 +143,7 @@ export function BannersManager() {
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">Баннеров пока нет</p>
             <Button 
               onClick={handleAdd} 
-              className="gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-black shadow-md text-sm"
+              className="gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 !text-black shadow-md text-sm"
             >
               <Plus className="h-4 w-4" />
               Добавить первый баннер
@@ -172,7 +172,7 @@ export function BannersManager() {
                   <div className="flex-1 space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm text-gray-900 dark:text-white truncate">{banner.title}</h3>
+                        <h3 className="font-semibold text-sm text-foreground dark:text-white truncate">{banner.title}</h3>
                         {banner.link && (
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                             🔗 {banner.link}

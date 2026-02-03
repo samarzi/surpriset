@@ -143,14 +143,14 @@ export default function FiltersPage() {
         <div className="space-y-8">
           {/* Sort By */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold text-foreground flex items-center gap-2">
+            <Label className="text-base font-semibold text-foreground dark:text-white flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary"></div>
               Сортировка
             </Label>
             <select
               value={filters.sortBy}
               onChange={(e) => handleSortChange(e.target.value as ProductFilters['sortBy'])}
-              className="w-full h-12 rounded-xl border-2 border-border/50 bg-background px-4 text-base font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+              className="w-full h-12 rounded-xl border-2 border-border/50 bg-background px-4 text-base font-medium text-foreground dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
             >
               <option value="newest">🆕 Новые товары</option>
               <option value="popular">⭐ Популярные</option>
@@ -162,7 +162,7 @@ export default function FiltersPage() {
           {/* Categories */}
           {categories.length > 0 && (
             <div className="space-y-3">
-              <Label className="text-base font-semibold text-foreground flex items-center gap-2">
+              <Label className="text-base font-semibold text-foreground dark:text-white flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-primary"></div>
                 Категории
               </Label>
@@ -207,7 +207,7 @@ export default function FiltersPage() {
 
           {/* Product Type */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold text-foreground flex items-center gap-2">
+            <Label className="text-base font-semibold text-foreground dark:text-white flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary"></div>
               Тип товара
             </Label>
@@ -247,7 +247,7 @@ export default function FiltersPage() {
                     )}
                   </div>
                 </div>
-                <span className="text-base font-medium">🎁 Отдельные товары</span>
+                <span className="text-base font-medium text-foreground dark:text-white">🎁 Отдельные товары</span>
               </label>
               <label className="flex items-center space-x-3 cursor-pointer group">
                 <div className="relative">
@@ -284,20 +284,20 @@ export default function FiltersPage() {
                     )}
                   </div>
                 </div>
-                <span className="text-base font-medium">📦 Готовые наборы</span>
+                <span className="text-base font-medium text-foreground dark:text-white">📦 Готовые наборы</span>
               </label>
             </div>
           </div>
 
           {/* Price Range */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold text-foreground flex items-center gap-2">
+            <Label className="text-base font-semibold text-foreground dark:text-white flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary"></div>
               Диапазон цен
             </Label>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">От (₽)</label>
+                <label className="text-sm font-medium text-muted-foreground dark:text-gray-200">От (₽)</label>
                 <Input
                   type="number"
                   placeholder="0"
@@ -310,7 +310,7 @@ export default function FiltersPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">До (₽)</label>
+                <label className="text-sm font-medium text-muted-foreground dark:text-gray-200">До (₽)</label>
                 <Input
                   type="number"
                   placeholder="∞"
@@ -327,7 +327,7 @@ export default function FiltersPage() {
 
           {/* Status */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold text-foreground flex items-center gap-2">
+            <Label className="text-base font-semibold text-foreground dark:text-white flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary"></div>
               Наличие товара
             </Label>
@@ -357,7 +357,7 @@ export default function FiltersPage() {
                     )}
                   </div>
                 </div>
-                <span className="text-base font-medium">✅ В наличии</span>
+                <span className="text-base font-medium text-foreground dark:text-white">✅ В наличии</span>
               </label>
               <label className="flex items-center space-x-3 cursor-pointer group">
                 <div className="relative">
@@ -384,7 +384,7 @@ export default function FiltersPage() {
                     )}
                   </div>
                 </div>
-                <span className="text-base font-medium">⏳ Скоро в продаже</span>
+                <span className="text-base font-medium text-foreground dark:text-white">⏳ Скоро в продаже</span>
               </label>
             </div>
           </div>
@@ -398,7 +398,7 @@ export default function FiltersPage() {
                 console.log('Catalog button clicked!');
                 navigate('/catalog');
               }}
-              className="w-full h-12 rounded-xl font-semibold bg-primary hover:bg-primary/90 text-base relative z-50"
+              className="w-full h-12 rounded-xl font-semibold bg-primary hover:bg-primary/90 !text-black text-base relative z-50"
             >
               В каталог
             </Button>

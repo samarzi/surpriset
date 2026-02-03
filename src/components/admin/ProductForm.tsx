@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, Package, Download, RefreshCw, AlertCircle } from 'lucide-react';
+import { X, Plus, Package, Download, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ImageUploadCompact } from '@/components/ui/image-upload-compact';
+import { ImageFullscreenModal } from '@/components/ui/image-fullscreen-modal';
 import { productService } from '@/lib/database';
 import { Product, ProductStatus, ProductType, ProductCategory } from '@/types';
 import { marketplaceParser, detectMarketplace } from '@/lib/marketplaceParsers';
@@ -38,7 +39,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     source_url: '',
     margin_percent: 20 // Наценка по умолчанию 20%
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
@@ -50,6 +51,9 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
   const [importing, setImporting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [longPressedImage, setLongPressedImage] = useState<number | null>(null);
+  const [fullscreenModalOpen, setFullscreenModalOpen] = useState(false);
+  const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
+  const [isPriceRaw, setIsPriceRaw] = useState(false); // Flag to track if price is raw from import
 
   // Фильтрованные категории для поиска
   const filteredCategories = useMemo(() => {
@@ -69,7 +73,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
         .from('product_categories')
         .select('*')
         .order('name');
-      
+
       if (error) throw error;
       setCategories(data || []);
     } catch (err) {
@@ -96,7 +100,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
         source_url: product.source_url || '',
         margin_percent: product.margin_percent ?? 20
       });
-      
+
       if (product.source_url) {
         setMarketplaceUrl(product.source_url);
       }
@@ -104,27 +108,15 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
   }, [product]);
 
   // Автоматическое заполнение старой цены при завершении ввода (onBlur)
+  // Автоматическое заполнение старой цены при завершении ввода (onBlur)
   const handlePriceBlur = () => {
-    const price = parseFloat(formData.price);
-    
-    // Если цена валидна и старая цена пустая, автоматически заполняем
-    if (price > 0 && !formData.original_price) {
-      // Случайная наценка от 15% до 30%
-      const randomPercent = 15 + Math.random() * 15; // 15-30%
-      const calculatedOriginalPrice = price * (1 + randomPercent / 100);
-      const originalPrice = Math.round(calculatedOriginalPrice).toString();
-      
-      setFormData(prev => ({
-        ...prev,
-        original_price: originalPrice
-      }));
-    }
+    // Logic removed to prevent confusion with fake prices
   };
 
   // Функция импорта товара с маркетплейса
   const handleImportFromMarketplace = async () => {
     const trimmedUrl = marketplaceUrl.trim();
-    
+
     if (!trimmedUrl) {
       setError('Введите ссылку на товар');
       return;
@@ -132,7 +124,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
 
     // Проверяем, запущено ли приложение в Telegram
     const isInTelegram = isTelegramWebApp();
-    
+
     if (!isInTelegram) {
       setError('⚠️ Импорт товаров работает только в Telegram Mini App из-за ограничений CORS в браузерах. Откройте приложение в Telegram для использования этой функции.');
       return;
@@ -148,58 +140,82 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     setError(null);
 
     try {
-      console.log('🔄 Starting import from marketplace:', trimmedUrl);
+      if (import.meta.env.DEV) {
+        console.log('🔄 Starting import from marketplace:', trimmedUrl);
+      }
       const productData = await marketplaceParser.parseProduct(trimmedUrl);
-      
+
       // Логируем полученные данные для отладки
-      console.log('📥 Получены данные от парсера:', {
-        title: productData.title,
-        price: productData.price,
-        old_price: productData.old_price,
-        description: productData.description?.substring(0, 100) + '...',
-        images_count: productData.images?.length || 0,
-        characteristics_count: Object.keys(productData.characteristics || {}).length,
-        in_stock: productData.in_stock
-      });
-      
+      if (import.meta.env.DEV) {
+        console.log('📥 Получены данные от парсера:', {
+          title: productData.title,
+          price: productData.price,
+          old_price: productData.old_price,
+          description: productData.description?.substring(0, 100) + '...',
+          images_count: productData.images?.length || 0,
+          characteristics_count: Object.keys(productData.characteristics || {}).length,
+          in_stock: productData.in_stock
+        });
+      }
+
       // Валидация данных
       if (!productData.title || productData.title.length < 3) {
         throw new Error('Не удалось извлечь название товара. Попробуйте другую ссылку.');
       }
-      
+
       if (!productData.price || productData.price <= 0) {
         console.warn('⚠️ Цена не извлечена или равна 0, будет установлена 0');
       }
-      
+
       // Импортируем цены БЕЗ наценки - как есть с маркетплейса
       const basePrice = productData.price || 0;
       const baseOriginalPrice = productData.old_price && productData.old_price > 0
-        ? productData.old_price 
+        ? productData.old_price
         : null;
-      
+
       // Генерируем SKU как 6-значное число
       const sku = formData.sku || Math.floor(100000 + Math.random() * 900000).toString();
-      
-      // Очищаем и валидируем изображения
-      const validImages = (productData.images || []).filter(img => 
-        img && typeof img === 'string' && img.startsWith('http')
-      );
-      
-      console.log('✅ Подготовка данных для формы:', {
-        title: productData.title,
-        basePrice,
-        baseOriginalPrice,
-        images_count: validImages.length,
-        description_length: productData.description?.length || 0
-      });
-      
-      // Автоматически рассчитываем первоначальную цену с наценкой 15-30%
-      let calculatedOriginalPrice = '';
-      if (basePrice > 0 && !baseOriginalPrice) {
-        const randomPercent = 15 + Math.random() * 15; // 15-30%
-        calculatedOriginalPrice = Math.round(basePrice * (1 + randomPercent / 100)).toString();
+
+      // Функция улучшения качества изображений
+      const upgradeImageQuality = (url: string): string => {
+        if (!url) return url;
+
+        // Убираем query параметры
+        let upgraded = url.split('?')[0];
+
+        // Для Ozon CDN заменяем размеры на максимальные
+        if (upgraded.includes('cdn') || upgraded.includes('ozon')) {
+          upgraded = upgraded.replace(/\/w\d+\//g, '/wc1000/');
+          upgraded = upgraded.replace(/\/h\d+\//g, '/hc1000/');
+          upgraded = upgraded.replace(/\/wc\d+\//g, '/wc1000/');
+          upgraded = upgraded.replace(/\/hc\d+\//g, '/hc1000/');
+        }
+
+        // Для Yandex Market заменяем размеры на максимальные
+        if (upgraded.includes('market.yandex') || upgraded.includes('mdata.yandex') || upgraded.includes('avatars.mds.yandex')) {
+          upgraded = upgraded.replace(/\/\d+x\d+\//g, '/orig/');
+          upgraded = upgraded.replace(/\/w\d+\//g, '/w2000/');
+          upgraded = upgraded.replace(/\/h\d+\//g, '/h2000/');
+        }
+
+        return upgraded;
+      };
+
+      // Очищаем и валидируем изображения, улучшая их качество
+      const validImages = (productData.images || [])
+        .filter(img => img && typeof img === 'string' && img.startsWith('http'))
+        .map(img => upgradeImageQuality(img));
+
+      if (import.meta.env.DEV) {
+        console.log('✅ Подготовка данных для формы:', {
+          title: productData.title,
+          basePrice,
+          baseOriginalPrice,
+          images_count: validImages.length,
+          description_length: productData.description?.length || 0
+        });
       }
-      
+
       // Заполняем форму данными БЕЗ наценки
       setFormData(prev => ({
         ...prev,
@@ -208,7 +224,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
         description: (productData.description || '').trim(),
         composition: (productData.composition || '').trim(),
         price: basePrice.toString(),
-        original_price: baseOriginalPrice ? baseOriginalPrice.toString() : calculatedOriginalPrice,
+        original_price: baseOriginalPrice ? baseOriginalPrice.toString() : '',
         images: validImages,
         status: productData.in_stock ? 'in_stock' : 'out_of_stock',
         specifications: productData.characteristics || {},
@@ -216,9 +232,15 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
         source_url: marketplaceUrl,
         margin_percent: 20 // Наценка по умолчанию 20%
       }));
-      
-      // Показываем успешное сообщение
-      alert(`✅ Товар успешно загружен с ${marketplace === 'wildberries' ? 'Wildberries' : marketplace === 'ozon' ? 'Ozon' : 'Яндекс Маркет'}!\n\nЦена импортирована: ${basePrice}₽\n\nНаценка 20% будет применена при сохранении товара.`);
+      setIsPriceRaw(true); // Mark price as raw (needs margin application)
+
+      // Прокручиваем к секции изображений для предпросмотра
+      setTimeout(() => {
+        const imagesSection = document.querySelector('[data-section="images"]');
+        if (imagesSection) {
+          imagesSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка импорта товара');
     } finally {
@@ -235,15 +257,15 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
       // Если товар импортирован, применяем наценку к ценам
       let finalPrice = parseFloat(formData.price);
       let finalOriginalPrice = formData.original_price ? parseFloat(formData.original_price) : null;
-      
-      if (formData.is_imported && formData.margin_percent) {
+
+      if (formData.is_imported && formData.margin_percent && isPriceRaw) {
         const marginMultiplier = 1 + (formData.margin_percent / 100);
         finalPrice = Math.round(finalPrice * marginMultiplier);
         if (finalOriginalPrice) {
           finalOriginalPrice = Math.round(finalOriginalPrice * marginMultiplier);
         }
       }
-      
+
       const productData = {
         sku: formData.sku,
         name: formData.name,
@@ -263,7 +285,9 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
         last_price_check_at: formData.is_imported ? new Date().toISOString() : null
       };
 
-      console.log('📤 Отправка данных товара:', productData);
+      if (import.meta.env.DEV) {
+        console.log('📤 Отправка данных товара:', productData);
+      }
 
       if (product) {
         await productService.update(product.id, productData);
@@ -283,12 +307,12 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
       setLoading(false);
     }
   };
-  
+
   // Функции для работы с категориями
   const toggleCategory = (categoryId: string) => {
     setFormData(prev => {
       const isSelected = prev.category_ids.includes(categoryId);
-      
+
       if (isSelected) {
         // Убираем категорию
         return {
@@ -366,7 +390,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     // Block body scroll when modal is open
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    
+
     return () => {
       // Restore body scroll
       document.body.style.overflow = originalOverflow;
@@ -395,11 +419,11 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 admin-modal">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm transition-opacity modal-backdrop"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <Card className="relative w-full max-w-5xl max-h-[95vh] overflow-hidden bg-background/95 dark:bg-gray-900/95 backdrop-blur-md border-border/50 shadow-2xl modal-content">
         <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 bg-gradient-to-r from-background/80 to-muted/20 dark:from-gray-900/80 dark:to-gray-800/20 backdrop-blur-sm">
@@ -411,16 +435,16 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
               {product ? 'Редактировать товар' : 'Добавить товар'}
             </CardTitle>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onClose}
             className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive transition-colors"
           >
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        
+
         <div className="overflow-y-auto max-h-[calc(95vh-80px)]">
           <CardContent className="p-6 bg-background/50 dark:bg-gray-900/50">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -445,7 +469,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                     Импорт с маркетплейса
                   </h3>
                 </div>
-                
+
                 {!isTelegramWebApp() && (
                   <div className="mb-3 flex items-start gap-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
                     <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
@@ -454,7 +478,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                     </p>
                   </div>
                 )}
-                
+
                 <p className="text-xs text-blue-700 dark:text-blue-300 mb-3">
                   Вставьте ссылку на товар с Wildberries, Ozon или Яндекс Маркет для автоматического заполнения формы
                 </p>
@@ -470,7 +494,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                     type="button"
                     onClick={handleImportFromMarketplace}
                     disabled={importing || !marketplaceUrl.trim()}
-                    className="gap-2 bg-blue-600 hover:bg-blue-700 text-black"
+                    className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     {importing ? (
                       <>
@@ -486,11 +510,22 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                   </Button>
                 </div>
                 {formData.is_imported && formData.source_url && (
-                  <div className="mt-3 flex items-center gap-2 text-xs text-blue-700 dark:text-blue-300">
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-blue-700 dark:text-blue-300">
                     <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
                       Импортирован
                     </Badge>
                     <span>Наценка {formData.margin_percent || 20}% будет применена при сохранении</span>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="ml-auto h-7 gap-1.5 text-xs bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                      onClick={() => window.open(formData.source_url, '_blank')}
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Открыть в маркетплейсе
+                    </Button>
                   </div>
                 )}
               </div>
@@ -535,7 +570,10 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                           type="number"
                           step="0.01"
                           value={formData.price}
-                          onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                          onChange={(e) => {
+                            setFormData(prev => ({ ...prev, price: e.target.value }));
+                            setIsPriceRaw(false); // Manual input implies final price
+                          }}
                           onBlur={handlePriceBlur}
                           placeholder="1000.00"
                           required
@@ -579,6 +617,13 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                           <p className="text-xs text-muted-foreground mt-1">
                             Наценка от 0% до 100%. Влияет на цену товара при обновлении с маркетплейса.
                           </p>
+                          {isPriceRaw && formData.price && (
+                            <div className="mt-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-xs">
+                              <span className="text-purple-700 dark:text-purple-300 font-medium">
+                                Итоговая цена при сохранении: {Math.round(parseFloat(formData.price) * (1 + (formData.margin_percent || 0) / 100))} ₽
+                              </span>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -671,13 +716,13 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                               className="w-full justify-between h-10 text-sm"
                             >
                               <span className="text-muted-foreground">
-                                {formData.category_ids.length === 0 
-                                  ? 'Выберите категории...' 
+                                {formData.category_ids.length === 0
+                                  ? 'Выберите категории...'
                                   : `Выбрано: ${formData.category_ids.length}/3`}
                               </span>
                               <span className={`transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`}>▼</span>
                             </Button>
-                            
+
                             {showCategoryDropdown && (
                               <div className="absolute z-50 w-full mt-1 bg-background border-2 border-border rounded-lg shadow-lg max-h-64 overflow-hidden">
                                 {/* Search input */}
@@ -691,7 +736,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                                     autoFocus
                                   />
                                 </div>
-                                
+
                                 {/* Category list */}
                                 <div className="overflow-y-auto max-h-48">
                                   {filteredCategories.length === 0 ? (
@@ -702,7 +747,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                                     filteredCategories.map((category) => {
                                       const isSelected = formData.category_ids.includes(category.id);
                                       const isDisabled = !isSelected && formData.category_ids.length >= 3;
-                                      
+
                                       return (
                                         <button
                                           key={category.id}
@@ -715,8 +760,8 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                                           disabled={isDisabled}
                                           className={`
                                             w-full px-3 py-2 text-left text-sm transition-colors
-                                            ${isSelected 
-                                              ? 'bg-primary/10 text-black font-medium' 
+                                            ${isSelected
+                                              ? 'bg-primary/10 text-primary font-medium'
                                               : isDisabled
                                                 ? 'text-gray-400 cursor-not-allowed'
                                                 : 'hover:bg-muted'
@@ -725,7 +770,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                                         >
                                           <div className="flex items-center justify-between">
                                             <span>{category.name}</span>
-                                            {isSelected && <span className="text-black">✓</span>}
+                                            {isSelected && <span className="text-primary">✓</span>}
                                           </div>
                                         </button>
                                       );
@@ -735,7 +780,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                               </div>
                             )}
                           </div>
-                          
+
                           {/* Selected categories display */}
                           {formData.category_ids.length > 0 && (
                             <div className="flex flex-wrap gap-2 pt-2 border-t border-border/50">
@@ -743,7 +788,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                               {formData.category_ids.map((categoryId) => {
                                 const category = categories.find(c => c.id === categoryId);
                                 if (!category) return null;
-                                
+
                                 return (
                                   <Badge key={categoryId} variant="secondary" className="gap-1">
                                     {category.name}
@@ -767,48 +812,69 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
               </div>
 
               {/* Images - Compact Gallery */}
-              <div className="bg-muted/30 dark:bg-gray-800/30 rounded-xl p-4 sm:p-6 border border-border/50">
-                <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
-                  <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
-                    <span className="text-xs text-green-600 dark:text-green-400">🖼️</span>
-                  </div>
-                  Изображения товара ({formData.images.length}/10)
-                </h3>
-                
+              <div
+                data-section="images"
+                className="bg-muted/30 dark:bg-gray-800/30 rounded-xl p-4 sm:p-6 border border-border/50"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
+                      <span className="text-xs text-green-600 dark:text-green-400">🖼️</span>
+                    </div>
+                    Изображения товара ({formData.images.length}/10)
+                  </h3>
+
+                  {formData.images.length > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setFullscreenImageIndex(0);
+                        setFullscreenModalOpen(true);
+                      }}
+                      className="text-xs"
+                    >
+                      Просмотр
+                    </Button>
+                  )}
+                </div>
+
                 {/* Compact Image Grid */}
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 mb-4">
                   {formData.images.map((image, index) => {
                     const isLongPressed = longPressedImage === index;
                     let longPressTimer: NodeJS.Timeout | null = null;
-                    
+
                     const handleTouchStart = () => {
                       // Запускаем таймер для long press (500ms)
                       longPressTimer = setTimeout(() => {
                         setLongPressedImage(index);
                       }, 500);
                     };
-                    
+
                     const handleTouchEnd = () => {
                       // Отменяем таймер
                       if (longPressTimer) {
                         clearTimeout(longPressTimer);
                       }
-                      
-                      // Если не было long press, открываем превью
+
+                      // Если не было long press, открываем полноэкранный просмотр
                       if (!isLongPressed) {
-                        setPreviewImage(image);
+                        setFullscreenImageIndex(index);
+                        setFullscreenModalOpen(true);
                       }
                     };
-                    
+
                     const handleTouchMove = () => {
                       // Отменяем long press при движении пальца
                       if (longPressTimer) {
                         clearTimeout(longPressTimer);
                       }
                     };
-                    
+
                     return (
-                      <div 
+                      <div
                         key={index}
                         className="relative group aspect-square rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all bg-muted/50"
                         onTouchStart={handleTouchStart}
@@ -816,23 +882,25 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                         onTouchMove={handleTouchMove}
                       >
                         {/* Image Preview */}
-                        <img 
-                          src={image} 
+                        <img
+                          src={image}
                           alt={`Product ${index + 1}`}
                           className="w-full h-full object-cover cursor-pointer select-none"
-                          onClick={() => setPreviewImage(image)}
+                          onClick={() => {
+                            setFullscreenImageIndex(index);
+                            setFullscreenModalOpen(true);
+                          }}
                           draggable={false}
                         />
-                        
+
                         {/* Order Badge */}
                         <div className="absolute top-1 left-1 bg-black/70 text-white text-[10px] sm:text-xs px-1.5 py-0.5 rounded font-medium">
                           {index + 1}
                         </div>
-                        
+
                         {/* Controls - Show on hover (desktop) or long press (mobile) */}
-                        <div className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-1 ${
-                          isLongPressed ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'
-                        }`}>
+                        <div className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-1 ${isLongPressed ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'
+                          }`}>
                           {/* Move Up */}
                           {index > 0 && (
                             <Button
@@ -854,7 +922,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                               ↑
                             </Button>
                           )}
-                          
+
                           {/* Move Down */}
                           {index < formData.images.length - 1 && (
                             <Button
@@ -876,7 +944,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                               ↓
                             </Button>
                           )}
-                          
+
                           {/* Remove */}
                           <Button
                             type="button"
@@ -896,7 +964,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                           >
                             <X className="h-4 w-4" />
                           </Button>
-                          
+
                           {/* Close button for mobile */}
                           {isLongPressed && (
                             <Button
@@ -920,7 +988,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                       </div>
                     );
                   })}
-                  
+
                   {/* Add New Image Button */}
                   {formData.images.length < 10 && (
                     <div className="aspect-square">
@@ -937,13 +1005,13 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                     </div>
                   )}
                 </div>
-                
+
                 {formData.images.length >= 10 && (
                   <div className="text-xs sm:text-sm text-muted-foreground bg-yellow-50 dark:bg-yellow-900/20 p-2 sm:p-3 rounded-lg border border-yellow-200 dark:border-yellow-800">
                     Достигнуто максимальное количество изображений (10)
                   </div>
                 )}
-                
+
                 {formData.images.length === 0 && (
                   <div className="text-xs sm:text-sm text-muted-foreground text-center py-8 border-2 border-dashed border-border/50 rounded-lg">
                     Нажмите на кнопку выше, чтобы добавить изображения
@@ -994,17 +1062,17 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
 
               {/* Actions */}
               <div className="flex gap-4 pt-6 border-t border-border/50 bg-gradient-to-r from-background/50 to-muted/20 dark:from-gray-900/50 dark:to-gray-800/20 -mx-6 -mb-6 px-6 pb-6 mt-8">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={loading}
                   loading={loading}
                   className="flex-1 h-11 bg-primary hover:bg-primary/90 text-black font-medium transition-all duration-200"
                 >
                   {product ? 'Обновить товар' : 'Создать товар'}
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={onClose}
                   className="px-8 h-11 border-border/50 hover:bg-muted/50 transition-all duration-200"
                 >
@@ -1021,10 +1089,10 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
   return (
     <>
       {createPortal(modalContent, document.body)}
-      
+
       {/* Image Preview Modal */}
       {previewImage && createPortal(
-        <div 
+        <div
           className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in-0 duration-200"
           onClick={() => setPreviewImage(null)}
         >
@@ -1038,10 +1106,10 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
             >
               <X className="h-6 w-6" />
             </Button>
-            
+
             {/* Image */}
-            <img 
-              src={previewImage} 
+            <img
+              src={previewImage}
               alt="Preview"
               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
               onClick={(e) => e.stopPropagation()}
@@ -1050,6 +1118,15 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
         </div>,
         document.body
       )}
+
+      {/* Fullscreen Image Modal */}
+      <ImageFullscreenModal
+        images={formData.images}
+        initialIndex={fullscreenImageIndex}
+        isOpen={fullscreenModalOpen}
+        onClose={() => setFullscreenModalOpen(false)}
+      />
+
     </>
   );
 }

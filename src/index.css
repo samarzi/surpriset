@@ -1782,3 +1782,23 @@ main > div > .grid:first-child {
 .admin-panel [class*="bg-brand-gradient"] .btn {
   color: #000000 !important;
 }
+
+/* УНИВЕРСАЛЬНОЕ ПРАВИЛО: Все кнопки с ЛЮБЫМИ градиентами имеют черный текст */
+button[class*="bg-gradient"],
+.btn[class*="bg-gradient"],
+[class*="bg-gradient"] button,
+[class*="bg-gradient"] .btn {
+  color: #000000 !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+/* Все дочерние элементы кнопок с градиентами */
+button[class*="bg-gradient"] *,
+.btn[class*="bg-gradient"] *,
+[class*="bg-gradient"] button *,
+[class*="bg-gradient"] .btn * {
+  color: #000000 !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #000000 !important;
+}

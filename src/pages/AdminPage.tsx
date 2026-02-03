@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { 
-  Package, 
-  Image, 
-  ShoppingCart, 
-  BarChart3, 
+import {
+  Package,
+  Image,
+  ShoppingCart,
+  BarChart3,
   Settings,
   Home,
   Heart,
@@ -13,9 +13,9 @@ import {
   TrendingUp,
   FolderOpen,
   Menu,
-  X,
   Gift,
-  Box
+  Box,
+  Trash
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -147,61 +147,61 @@ function AdminDashboard() {
   return (
     <div className="w-full">
       <div className="space-y-4 w-full md:pt-24">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Панель управления</h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Добро пожаловать в админ-панель</p>
-        </div>
-      </div>
-      
-      {/* Stats Grid - Компактный */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title} className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
-              <CardContent className="!p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                    <Icon className={`h-4 w-4 ${stat.textColor}`} />
-                  </div>
-                </div>
-                <div>
-                  <p className="text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">{stat.title}</p>
-                  <p className={`text-xl md:text-2xl font-bold ${stat.textColor}`}>{stat.value}</p>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-500 mt-0.5 line-clamp-1">{stat.subtitle}</p>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-      
-      {/* Quick Actions - Компактный grid */}
-      <Card className="border-0 shadow-md">
-        <CardHeader className="pb-3 px-4 pt-3">
-          <CardTitle className="text-base font-semibold">Быстрые действия</CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4">
-          <div className="grid gap-2 grid-cols-3 md:grid-cols-3 lg:grid-cols-6">
-            {quickActions.map((action) => {
-              const Icon = action.icon;
-              return (
-                <Link
-                  key={action.title}
-                  to={action.href}
-                  className="group flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-primary/50 dark:hover:border-primary/50 transition-all hover:shadow-sm bg-white dark:bg-gray-900"
-                >
-                  <div className={`p-2 rounded-lg bg-gradient-to-br ${action.color} shadow-md group-hover:scale-110 transition-transform`}>
-                    <Icon className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 text-center leading-tight">{action.title}</span>
-                </Link>
-              );
-            })}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground dark:text-white">Панель управления</h1>
+            <p className="text-xs text-muted-foreground dark:text-slate-300 mt-0.5">Добро пожаловать в админ-панель</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Stats Grid - Компактный */}
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={stat.title} className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
+                <CardContent className="!p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                      <Icon className={`h-4 w-4 ${stat.textColor}`} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-medium text-muted-foreground dark:text-slate-300 mb-0.5">{stat.title}</p>
+                    <p className={`text-xl md:text-2xl font-bold ${stat.textColor} dark:text-white`}>{stat.value}</p>
+                    <p className="text-[10px] text-muted-foreground dark:text-slate-400 mt-0.5 line-clamp-1">{stat.subtitle}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Quick Actions - Компактный grid */}
+        <Card className="border-0 shadow-md">
+          <CardHeader className="pb-3 px-4 pt-3">
+            <CardTitle className="text-base font-semibold">Быстрые действия</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <div className="grid gap-2 grid-cols-3 md:grid-cols-3 lg:grid-cols-6">
+              {quickActions.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <Link
+                    key={action.title}
+                    to={action.href}
+                    className="group flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-primary/50 dark:hover:border-primary/50 transition-all hover:shadow-sm bg-white dark:bg-gray-900"
+                  >
+                    <div className={`p-2 rounded-lg bg-gradient-to-br ${action.color} shadow-md group-hover:scale-110 transition-transform`}>
+                      <Icon className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-[10px] font-medium text-foreground dark:text-slate-200 text-center leading-tight">{action.title}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
@@ -212,11 +212,17 @@ import { OrderDetailsModal } from '@/components/admin/OrderDetailsModal';
 function OrdersAdmin() {
   const { orders, loading, error, refetch } = useOrders();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<'all' | Order['status']>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'cancelled' | Order['status']>('active');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+
+  // Delete Logic
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   const handleStatusChange = async (orderId: string, status: Order['status']) => {
     try {
@@ -233,6 +239,33 @@ function OrdersAdmin() {
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
     setDetailsModalOpen(true);
+  };
+
+  const handleDeleteClick = (orderId: string) => {
+    setOrderToDelete(orderId);
+    setDeletePassword('');
+    setDeleteError('');
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (deletePassword !== '1111') {
+      setDeleteError('Неверный пароль');
+      return;
+    }
+
+    if (!orderToDelete) return;
+
+    try {
+      await orderService.delete(orderToDelete);
+      setDeleteModalOpen(false);
+      setOrderToDelete(null);
+      await refetch();
+    } catch (err) {
+      console.error('Failed to delete order', err);
+      setDeleteError('Ошибка удаления');
+    }
   };
 
   if (loading) {
@@ -263,10 +296,26 @@ function OrdersAdmin() {
   }
 
   const filteredOrders = orders.filter((order) => {
-    if (statusFilter !== 'all' && order.status !== statusFilter) return false;
+    // Basic filters
     if (dateFrom && new Date(order.created_at) < new Date(dateFrom)) return false;
     if (dateTo && new Date(order.created_at) > new Date(dateTo)) return false;
-    return true;
+
+    // Status Tab filter logic
+    if (statusFilter === 'all') return true;
+
+    // Group logic
+    if ((statusFilter as any) === 'active') {
+      return ['pending', 'processing', 'shipped'].includes(order.status);
+    }
+    if ((statusFilter as any) === 'completed') {
+      return order.status === 'delivered';
+    }
+    if ((statusFilter as any) === 'cancelled') {
+      return order.status === 'cancelled';
+    }
+
+    // Fallback specific status
+    return order.status === statusFilter;
   });
 
   const hasFilters = statusFilter !== 'all' || dateFrom || dateTo;
@@ -278,7 +327,7 @@ function OrdersAdmin() {
       case 'shipped': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800';
       case 'delivered': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800';
       case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400 border-gray-200 dark:border-gray-800';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-slate-300 border-gray-200 dark:border-gray-800';
     }
   };
 
@@ -307,131 +356,218 @@ function OrdersAdmin() {
   return (
     <div className="w-full">
       <div className="space-y-3 w-full md:pt-24">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Управление заказами</h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Всего заказов: {filteredOrders.length}</p>
-        </div>
-      </div>
-
-      {/* Компактные фильтры */}
-      <Card className="border-0 shadow-md">
-        <CardContent className="!p-4">
-          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as 'all' | Order['status'])}
-              className="text-xs border border-gray-300 dark:border-gray-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="all">Все статусы</option>
-              <option value="pending">Ожидает</option>
-              <option value="processing">В обработке</option>
-              <option value="shipped">Отправлен</option>
-              <option value="delivered">Доставлен</option>
-              <option value="cancelled">Отменён</option>
-            </select>
-            <div className="flex items-center gap-1.5 text-xs">
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="border border-gray-300 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary text-[10px]"
-              />
-              <span className="text-gray-500">—</span>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="border border-gray-300 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary text-[10px]"
-              />
-            </div>
-            {hasFilters && (
-              <Button variant="outline" size="sm" onClick={() => {
-                setStatusFilter('all');
-                setDateFrom('');
-                setDateTo('');
-              }} className="h-8 text-xs px-3">
-                Сбросить
-              </Button>
-            )}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground dark:text-white">Управление заказами</h1>
+            <p className="text-xs text-muted-foreground dark:text-slate-300 mt-0.5">Всего заказов: {filteredOrders.length}</p>
           </div>
-        </CardContent>
-      </Card>
-      
-      {filteredOrders.length === 0 ? (
-        <Card className="border-0 shadow-md mt-2">
-          <CardContent className="p-8 text-center">
-            <ShoppingCart className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              {hasFilters ? 'Заказы не найдены' : 'Заказов пока нет'}
-            </p>
+        </div>
+
+        {/* Компактные фильтры */}
+        <Card className="border-0 shadow-md">
+          <CardContent className="!p-4">
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+              {/* Status Select removed in favor of Tabs */}
+              <div className="flex items-center gap-1.5 text-xs">
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="border border-gray-300 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-800 text-foreground dark:text-white focus:outline-none focus:ring-2 focus:ring-primary text-[10px]"
+                />
+                <span className="text-muted-foreground">—</span>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="border border-gray-300 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-800 text-foreground dark:text-white focus:outline-none focus:ring-2 focus:ring-primary text-[10px]"
+                />
+              </div>
+              {hasFilters && (
+                <Button variant="outline" size="sm" onClick={() => {
+                  setStatusFilter('all');
+                  setDateFrom('');
+                  setDateTo('');
+                }} className="h-8 text-xs px-3">
+                  Сбросить
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
-      ) : (
-        <div className="space-y-2 mt-2">
-          {filteredOrders.map((order) => (
-            <Card key={order.id} className="border-0 shadow-sm hover:shadow-md transition-all overflow-hidden">
-              <div className={`h-0.5 bg-gradient-to-r ${getStatusGradient(order.status)}`} />
-              <CardContent className="!p-5">
-                <div className="flex flex-col sm:flex-row items-center gap-2">
-                  {/* Основная информация */}
-                  <div className="flex-1 min-w-0 space-y-0.5">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h3 className="font-semibold text-xs text-gray-900 dark:text-white">#{order.id.slice(0, 8)}</h3>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusColor(order.status)}`}>
-                        {getStatusLabel(order.status)}
-                      </span>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                        {new Date(order.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-[10px] text-gray-600 dark:text-gray-400">
-                      <span className="truncate max-w-[120px]">{order.customer_name}</span>
-                      <span>•</span>
-                      <span>{order.items.length} товар(ов)</span>
-                    </div>
-                  </div>
-                  
-                  {/* Сумма и управление */}
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="flex-1 sm:flex-none text-left sm:text-right">
-                      <p className="font-bold text-base text-gray-900 dark:text-white">{order.total.toLocaleString()} ₽</p>
-                    </div>
-                    
-                    <select
-                      value={order.status}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value as Order['status'])}
-                      disabled={updatingId === order.id}
-                      className="text-[10px] border border-gray-300 dark:border-gray-700 rounded-lg px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary min-w-[90px]"
-                    >
-                      <option value="pending">Ожидает</option>
-                      <option value="processing">В обработке</option>
-                      <option value="shipped">Отправлен</option>
-                      <option value="delivered">Доставлен</option>
-                      <option value="cancelled">Отменён</option>
-                    </select>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewDetails(order)}
-                      className="text-[10px] px-2 py-1 h-7"
-                    >
-                      Детали
-                    </Button>
-                  </div>
-                </div>
+
+        {/* Tabs for Order Statuses - Оптимизированные */}
+        <div className="flex justify-center gap-2 mb-4">
+          <button
+            onClick={() => setStatusFilter('active')}
+            className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all ${(statusFilter as any) === 'active' || (statusFilter !== 'completed' && statusFilter !== 'cancelled' && statusFilter !== 'all')
+              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30'
+              : 'bg-muted/50 text-foreground/70 hover:bg-muted hover:text-foreground dark:bg-gray-700/50 dark:text-gray-200 dark:hover:bg-gray-700'
+              }`}
+          >
+            📋 Актуальные
+          </button>
+          <button
+            onClick={() => setStatusFilter('completed')}
+            className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all ${statusFilter === 'completed' || statusFilter === 'delivered'
+              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/30'
+              : 'bg-muted/50 text-foreground/70 hover:bg-muted hover:text-foreground dark:bg-gray-700/50 dark:text-gray-200 dark:hover:bg-gray-700'
+              }`}
+          >
+            ✅ Завершенные
+          </button>
+          <button
+            onClick={() => setStatusFilter('cancelled')}
+            className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all ${statusFilter === 'cancelled'
+              ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/30'
+              : 'bg-muted/50 text-foreground/70 hover:bg-muted hover:text-foreground dark:bg-gray-700/50 dark:text-gray-200 dark:hover:bg-gray-700'
+              }`}
+          >
+            ❌ Отмененные
+          </button>
+        </div>
+
+        {/* Дополнительные фильтры (скрываем если выбраны табы, или оставляем для дат?)
+            Пользователь просил "фильтрацию по актуальным...", поэтому табы заменяют селект статуса */}
+
+        {/* Список заказов с учетом табов */}
+        {(() => {
+          // Логика фильтрации для табов
+          const tabFilteredOrders = filteredOrders;
+
+          return tabFilteredOrders.length === 0 ? (
+            <Card className="border-0 shadow-md mt-2">
+              <CardContent className="p-8 text-center">
+                <ShoppingCart className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+                <p className="text-muted-foreground dark:text-slate-300 text-sm">
+                  Заказов в этой категории нет
+                </p>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          ) : (
+            <div className="space-y-2 mt-2">
+              {tabFilteredOrders.map((order) => (
+                <Card key={order.id} className="border-0 shadow-sm hover:shadow-md transition-all overflow-hidden">
+                  <div className={`h-0.5 bg-gradient-to-r ${getStatusGradient(order.status)}`} />
+                  <CardContent className="!p-5">
+                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                      {/* Основная информация */}
+                      <div className="flex-1 min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="font-semibold text-xs text-foreground dark:text-white">#{order.id.slice(0, 8)}</h3>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusColor(order.status)}`}>
+                            {getStatusLabel(order.status)}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground dark:text-slate-300">
+                            {new Date(order.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground dark:text-slate-300">
+                          <span className="truncate max-w-[120px]">{order.customer_name}</span>
+                          <span>•</span>
+                          <span>{order.items.length} товар(ов)</span>
+                        </div>
+                      </div>
 
-      <OrderDetailsModal
-        order={selectedOrder}
-        open={detailsModalOpen}
-        onOpenChange={setDetailsModalOpen}
-      />
+                      {/* Сумма и управление */}
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="flex-1 sm:flex-none text-left sm:text-right">
+                          <p className="font-bold text-base text-foreground dark:text-white">{order.total.toLocaleString()} ₽</p>
+                        </div>
+
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleStatusChange(order.id, e.target.value as Order['status'])}
+                          disabled={updatingId === order.id}
+                          className="text-[10px] border border-gray-300 dark:border-gray-700 rounded-lg px-2 py-1 bg-white dark:bg-gray-800 text-foreground dark:text-white focus:outline-none focus:ring-2 focus:ring-primary min-w-[90px]"
+                        >
+                          <option value="pending">Ожидает</option>
+                          <option value="processing">В обработке</option>
+                          <option value="shipped">Отправлен</option>
+                          <option value="delivered">Доставлен</option>
+                          <option value="cancelled">Отменён</option>
+                        </select>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewDetails(order)}
+                          className="text-[10px] px-2 py-1 h-7"
+                        >
+                          Детали
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteClick(order.id)}
+                          className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <Trash className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          );
+        })()}
+
+        <OrderDetailsModal
+          order={selectedOrder}
+          open={detailsModalOpen}
+          onOpenChange={setDetailsModalOpen}
+        />
+
+        {/* Delete Confirmation Modal */}
+        {deleteModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <Card className="w-full max-w-sm">
+              <CardHeader>
+                <CardTitle className="text-lg text-red-600 flex items-center gap-2">
+                  <Trash className="h-5 w-5" />
+                  Удаление заказа
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={confirmDelete} className="space-y-4">
+                  <p className="text-sm text-muted-foreground dark:text-slate-300">
+                    Вы уверены? Это действие необратимо. Введите пароль для подтверждения.
+                  </p>
+                  <div>
+                    <Input
+                      type="password"
+                      placeholder="Пароль"
+                      value={deletePassword}
+                      onChange={(e) => setDeletePassword(e.target.value)}
+                      className="text-center tracking-widest"
+                      autoFocus
+                    />
+                    {deleteError && (
+                      <p className="text-xs text-red-500 mt-1">{deleteError}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setDeleteModalOpen(false)}
+                    >
+                      Отмена
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="destructive"
+                    >
+                      Удалить
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -479,195 +615,195 @@ function AnalyticsAdmin() {
   return (
     <div className="w-full">
       <div className="space-y-6 md:pt-24">
-      <h1 className="text-3xl font-bold">Аналитика</h1>
-      
-      {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-red-400 bg-red-50/50 dark:bg-red-900/10">
-          <CardContent className="!p-5">
-            <div className="flex items-center gap-3">
-              <Heart className="h-5 w-5 text-red-500" />
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Всего лайков</p>
-                <p className="text-2xl font-bold text-red-600">{totalLikes}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-l-4 border-l-blue-400 bg-blue-50/50 dark:bg-blue-900/10">
-          <CardContent className="!p-5">
-            <div className="flex items-center gap-3">
-              <ShoppingCart className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Всего заказов</p>
-                <p className="text-2xl font-bold text-blue-600">{orders.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-l-4 border-l-green-400 bg-green-50/50 dark:bg-green-900/10">
-          <CardContent className="!p-5">
-            <div className="flex items-center gap-3">
-              <BarChart3 className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Выручка</p>
-                <p className="text-2xl font-bold text-green-600">{totalRevenue.toLocaleString()} ₽</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-l-4 border-l-purple-400 bg-purple-50/50 dark:bg-purple-900/10">
-          <CardContent className="!p-5">
-            <div className="flex items-center gap-3">
-              <Package className="h-5 w-5 text-purple-500" />
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Товаров</p>
-                <p className="text-2xl font-bold text-purple-600">{products.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <h1 className="text-3xl font-bold">Аналитика</h1>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Топ товаров по лайкам */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-red-500" />
-              Топ товаров по лайкам
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="!p-5">
-            {topLikedProducts.length === 0 ? (
-              <p className="text-muted-foreground">Пока нет лайков</p>
-            ) : (
-              <div className="space-y-3">
-                {topLikedProducts.map((product, index) => (
-                  <div key={product.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        #{index + 1}
-                      </span>
-                      <div>
-                        <p className="font-medium text-sm">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">{product.sku}</p>
+        {/* Overview Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="border-l-4 border-l-red-400 bg-red-50/50 dark:bg-red-900/10">
+            <CardContent className="!p-5">
+              <div className="flex items-center gap-3">
+                <Heart className="h-5 w-5 text-red-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground dark:text-slate-300">Всего лайков</p>
+                  <p className="text-2xl font-bold text-red-600">{totalLikes}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-blue-400 bg-blue-50/50 dark:bg-blue-900/10">
+            <CardContent className="!p-5">
+              <div className="flex items-center gap-3">
+                <ShoppingCart className="h-5 w-5 text-blue-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground dark:text-slate-300">Всего заказов</p>
+                  <p className="text-2xl font-bold text-blue-600">{orders.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-green-400 bg-green-50/50 dark:bg-green-900/10">
+            <CardContent className="!p-5">
+              <div className="flex items-center gap-3">
+                <BarChart3 className="h-5 w-5 text-green-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground dark:text-slate-300">Выручка</p>
+                  <p className="text-2xl font-bold text-green-600">{totalRevenue.toLocaleString()} ₽</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-purple-400 bg-purple-50/50 dark:bg-purple-900/10">
+            <CardContent className="!p-5">
+              <div className="flex items-center gap-3">
+                <Package className="h-5 w-5 text-purple-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground dark:text-slate-300">Товаров</p>
+                  <p className="text-2xl font-bold text-purple-600">{products.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Топ товаров по лайкам */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-red-500" />
+                Топ товаров по лайкам
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="!p-5">
+              {topLikedProducts.length === 0 ? (
+                <p className="text-muted-foreground">Пока нет лайков</p>
+              ) : (
+                <div className="space-y-3">
+                  {topLikedProducts.map((product, index) => (
+                    <div key={product.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-muted-foreground">
+                          #{index + 1}
+                        </span>
+                        <div>
+                          <p className="font-medium text-sm">{product.name}</p>
+                          <p className="text-xs text-muted-foreground">{product.sku}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-4 w-4 text-red-500 fill-current" />
+                        <span className="font-bold">{product.likes_count}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Heart className="h-4 w-4 text-red-500 fill-current" />
-                      <span className="font-bold">{product.likes_count}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Топ товаров по продажам */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5 text-blue-500" />
-              Топ товаров по продажам
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="!p-5">
-            {topSellingProducts.length === 0 ? (
-              <p className="text-muted-foreground">Пока нет продаж</p>
-            ) : (
-              <div className="space-y-3">
-                {topSellingProducts.map(([productId, data], index) => (
-                  <div key={productId} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        #{index + 1}
-                      </span>
-                      <div>
-                        <p className="font-medium text-sm">{data.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {data.revenue.toLocaleString()} ₽
-                        </p>
+          {/* Топ товаров по продажам */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5 text-blue-500" />
+                Топ товаров по продажам
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="!p-5">
+              {topSellingProducts.length === 0 ? (
+                <p className="text-muted-foreground">Пока нет продаж</p>
+              ) : (
+                <div className="space-y-3">
+                  {topSellingProducts.map(([productId, data], index) => (
+                    <div key={productId} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-muted-foreground">
+                          #{index + 1}
+                        </span>
+                        <div>
+                          <p className="font-medium text-sm">{data.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {data.revenue.toLocaleString()} ₽
+                          </p>
+                        </div>
                       </div>
+                      <span className="font-bold">{data.quantity} шт</span>
                     </div>
-                    <span className="font-bold">{data.quantity} шт</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Статусы заказов */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Статусы заказов</CardTitle>
-          </CardHeader>
-          <CardContent className="!p-5">
-            <div className="space-y-3">
-              {Object.entries(orderStats).map(([status, count]) => {
-                const statusLabels = {
-                  pending: 'Ожидают',
-                  processing: 'В обработке',
-                  shipped: 'Отправлены',
-                  delivered: 'Доставлены',
-                  cancelled: 'Отменены'
-                };
-                
-                const statusColors = {
-                  pending: 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30',
-                  processing: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30',
-                  shipped: 'text-primary bg-primary/10 dark:bg-primary/20',
-                  delivered: 'text-green-600 bg-green-100 dark:bg-green-900/30',
-                  cancelled: 'text-red-600 bg-red-100 dark:bg-red-900/30'
-                };
+          {/* Статусы заказов */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Статусы заказов</CardTitle>
+            </CardHeader>
+            <CardContent className="!p-5">
+              <div className="space-y-3">
+                {Object.entries(orderStats).map(([status, count]) => {
+                  const statusLabels = {
+                    pending: 'Ожидают',
+                    processing: 'В обработке',
+                    shipped: 'Отправлены',
+                    delivered: 'Доставлены',
+                    cancelled: 'Отменены'
+                  };
 
-                return (
-                  <div key={status} className="flex items-center justify-between">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status as keyof typeof statusColors]}`}>
-                      {statusLabels[status as keyof typeof statusLabels]}
-                    </span>
-                    <span className="font-bold">{count}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  const statusColors = {
+                    pending: 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30',
+                    processing: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30',
+                    shipped: 'text-primary bg-primary/10 dark:bg-primary/20',
+                    delivered: 'text-green-600 bg-green-100 dark:bg-green-900/30',
+                    cancelled: 'text-red-600 bg-red-100 dark:bg-red-900/30'
+                  };
 
-        {/* Типы товаров */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Типы товаров</CardTitle>
-          </CardHeader>
-          <CardContent className="!p-5">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Готовые наборы</span>
-                <span className="font-bold">
-                  {products.filter(p => p.type === 'bundle').length}
-                </span>
+                  return (
+                    <div key={status} className="flex items-center justify-between">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status as keyof typeof statusColors]}`}>
+                        {statusLabels[status as keyof typeof statusLabels]}
+                      </span>
+                      <span className="font-bold">{count}</span>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Отдельные товары</span>
-                <span className="font-bold">
-                  {products.filter(p => p.type === 'product').length}
-                </span>
+            </CardContent>
+          </Card>
+
+          {/* Типы товаров */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Типы товаров</CardTitle>
+            </CardHeader>
+            <CardContent className="!p-5">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Готовые наборы</span>
+                  <span className="font-bold">
+                    {products.filter(p => p.type === 'bundle').length}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Отдельные товары</span>
+                  <span className="font-bold">
+                    {products.filter(p => p.type === 'product').length}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Рекомендуемые</span>
+                  <span className="font-bold">
+                    {products.filter(p => p.is_featured).length}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Рекомендуемые</span>
-                <span className="font-bold">
-                  {products.filter(p => p.is_featured).length}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
@@ -684,8 +820,8 @@ function CategoriesAdmin() {
   return (
     <div className="w-full">
       <div className="space-y-6 md:pt-24">
-      <h1 className="text-3xl font-bold">Управление категориями</h1>
-      <CategoryManager />
+        <h1 className="text-3xl font-bold">Управление категориями</h1>
+        <CategoryManager />
       </div>
     </div>
   );
@@ -695,11 +831,11 @@ function SettingsAdmin() {
   return (
     <div className="w-full">
       <div className="space-y-6 md:pt-24">
-      <h1 className="text-3xl font-bold">Настройки</h1>
-      <DebugPanel />
-      <DataRefreshTest />
-      <SettingsManager />
-      <AdminsManager />
+        <h1 className="text-3xl font-bold">Настройки</h1>
+        <DebugPanel />
+        <DataRefreshTest />
+        <SettingsManager />
+        <AdminsManager />
       </div>
     </div>
   );
@@ -714,7 +850,7 @@ export default function AdminPage() {
     // Check if admin is already authenticated
     const authenticated = localStorage.getItem('admin-authenticated') === 'true';
     setIsAuthenticated(authenticated);
-    
+
     // Запускаем фоновую синхронизацию цен при входе в админку
     if (authenticated) {
       startBackgroundPriceSync();
@@ -729,7 +865,7 @@ export default function AdminPage() {
   if (!isAuthenticated) {
     return <AdminAuth onAuthenticated={() => setIsAuthenticated(true)} />;
   }
-  
+
   const navigation = [
     { name: 'Главная', href: '/admin', icon: Home, exact: true },
     { name: 'Товары', href: '/admin/products', icon: Package },
@@ -752,23 +888,23 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900" data-admin>
-      <div className="md:flex md:min-h-screen">
+    <div className=" min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 admin-panel" data-admin>
+      <div className="md:flex">
         {/* Sidebar (desktop / tablet) - Улучшенный дизайн */}
-        <div className="hidden md:flex md:flex-col md:w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-xl flex-shrink-0">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+        <div className="hidden md:flex md:flex-col md:w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-xl flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-800 shrink-0">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-lg">
                 <Settings className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Админ-панель</h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Управление магазином</p>
+                <h2 className="text-lg font-bold text-foreground dark:text-white">Админ-панель</h2>
+                <p className="text-xs text-muted-foreground dark:text-slate-300">Управление магазином</p>
               </div>
             </div>
           </div>
-          
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+
+          <nav className="flex-1 p-4 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href, item.exact);
@@ -776,34 +912,33 @@ export default function AdminPage() {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                    active
-                      ? 'bg-gradient-to-r from-primary to-primary/90 text-black shadow-lg shadow-primary/30'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white'
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${active
+                    ? 'bg-gradient-to-r from-primary to-primary/90 !text-black shadow-lg shadow-primary/30'
+                    : 'text-foreground dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 hover:text-foreground dark:hover:text-white'
+                    }`}
                 >
-                  <Icon className={`h-5 w-5 ${active ? 'text-black' : 'text-gray-500 dark:text-gray-400 group-hover:text-primary'}`} />
+                  <Icon className={`h-5 w-5 ${active ? 'text-black' : 'text-muted-foreground dark:text-slate-300 group-hover:text-primary'}`} />
                   <span className="font-medium text-sm">{item.name}</span>
                 </Link>
               );
             })}
           </nav>
-          
+
           {/* Logout and Back to Site - Улучшенный дизайн */}
           <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleLogout}
               className="w-full justify-start gap-2 border-gray-300 dark:border-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 hover:border-red-300"
             >
               <Lock className="h-4 w-4" />
               Выйти
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full justify-start gap-2 border-gray-300 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 hover:border-blue-300" 
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start gap-2 border-gray-300 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 hover:border-blue-300"
               asChild
             >
               <Link to="/">
@@ -817,11 +952,11 @@ export default function AdminPage() {
         {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
           <>
-            <div 
+            <div
               className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] animate-in fade-in duration-200"
               onClick={() => setMobileMenuOpen(false)}
             />
-            
+
             {/* Mobile Sidebar */}
             <div className="md:hidden fixed top-[60px] bottom-0 left-0 w-72 bg-white dark:bg-gray-900 shadow-2xl z-[70] transform transition-transform duration-300 ease-out translate-x-0">
               <div className="flex flex-col h-full">
@@ -834,33 +969,32 @@ export default function AdminPage() {
                         key={item.name}
                         to={item.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                          active
-                            ? 'bg-gradient-to-r from-primary to-primary/90 text-black shadow-md'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50'
-                        }`}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${active
+                          ? 'bg-gradient-to-r from-primary to-primary/90 !text-black shadow-md'
+                          : 'text-foreground dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-gray-800/50'
+                          }`}
                       >
-                        <Icon className={`h-4 w-4 ${active ? 'text-black' : 'text-gray-500 dark:text-gray-400'}`} />
+                        <Icon className={`h-4 w-4 ${active ? 'text-black' : 'text-muted-foreground dark:text-slate-300'}`} />
                         <span className="font-medium text-sm">{item.name}</span>
                       </Link>
                     );
                   })}
                 </nav>
-                
+
                 <div className="p-3 border-t border-gray-200 dark:border-gray-800 space-y-1.5 bg-white dark:bg-gray-900">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleLogout}
                     className="w-full justify-start gap-2 h-9 text-xs hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
                   >
                     <Lock className="h-3.5 w-3.5" />
                     Выйти
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full justify-start gap-2 h-9 text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600" 
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start gap-2 h-9 text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600"
                     asChild
                   >
                     <Link to="/">
@@ -875,7 +1009,7 @@ export default function AdminPage() {
         )}
 
         {/* Main Content - Улучшенный дизайн */}
-        <div className="flex-1 flex flex-col h-screen pb-16 md:pb-0">
+        <div className="flex-1 flex flex-col min-h-screen pb-16 md:pb-0">
           {/* Mobile header - Компактный и элегантный */}
           <div className="md:hidden sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
             <div className="px-4 py-3 flex justify-between items-center">
@@ -891,7 +1025,7 @@ export default function AdminPage() {
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center">
                   <Settings className="h-4 w-4 text-white" />
                 </div>
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">Админ</h1>
+                <h1 className="text-lg font-bold text-foreground dark:text-white">Админ</h1>
               </div>
               <Button
                 variant="ghost"
@@ -905,7 +1039,7 @@ export default function AdminPage() {
           </div>
 
           {/* Content area - С отступами в самих компонентах */}
-          <div className="flex-1 p-3 md:p-4 lg:p-6 overflow-x-hidden overflow-y-auto">
+          <div className="flex-1 p-3 md:p-4 lg:p-6 overflow-x-hidden">
             <div className="w-full max-w-7xl mx-auto">
               <Routes>
                 <Route path="/" element={<AdminDashboard />} />

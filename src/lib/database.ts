@@ -269,6 +269,16 @@ export const orderService = {
 
     if (error) throw error
     return data as Order[]
+  },
+
+  // Delete order
+  async delete(id: string) {
+    const { error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
   }
 }
 
@@ -512,7 +522,7 @@ export const likesService = {
 
     // Update likes count in products table
     await this.updateProductLikesCount(productId)
-    
+
     return data as ProductLike
   },
 
@@ -602,11 +612,11 @@ export const packagingService = {
   // Get all packaging options
   async getAll(activeOnly = false) {
     let query = supabase.from('packaging').select('*').order('name')
-    
+
     if (activeOnly) {
       query = query.eq('is_active', true)
     }
-    
+
     const { data, error } = await query
     if (error) throw error
     return data || []
@@ -619,7 +629,7 @@ export const packagingService = {
       .select('*')
       .eq('id', id)
       .single()
-    
+
     if (error) throw error
     return data
   },
@@ -639,7 +649,7 @@ export const packagingService = {
       .insert(packaging)
       .select()
       .single()
-    
+
     if (error) throw error
     return data
   },
@@ -660,7 +670,7 @@ export const packagingService = {
       .eq('id', id)
       .select()
       .single()
-    
+
     if (error) throw error
     return data
   },
@@ -671,7 +681,7 @@ export const packagingService = {
       .from('packaging')
       .delete()
       .eq('id', id)
-    
+
     if (error) throw error
   }
 }
@@ -684,7 +694,7 @@ export const serviceCategoryService = {
       .from('service_categories')
       .select('*')
       .order('name')
-    
+
     if (error) throw error
     return data || []
   },
@@ -696,19 +706,19 @@ export const serviceCategoryService = {
       .select('*')
       .eq('id', id)
       .single()
-    
+
     if (error) throw error
     return data
   },
 
   // Create category
   async create(name: string) {
-    const { data, error} = await supabase
+    const { data, error } = await supabase
       .from('service_categories')
       .insert({ name })
       .select()
       .single()
-    
+
     if (error) throw error
     return data
   },
@@ -721,7 +731,7 @@ export const serviceCategoryService = {
       .eq('id', id)
       .select()
       .single()
-    
+
     if (error) throw error
     return data
   },
@@ -732,7 +742,7 @@ export const serviceCategoryService = {
       .from('service_categories')
       .delete()
       .eq('id', id)
-    
+
     if (error) throw error
   }
 }
@@ -745,11 +755,11 @@ export const additionalServiceService = {
       .from('additional_services')
       .select('*, service_categories(name)')
       .order('name')
-    
+
     if (activeOnly) {
       query = query.eq('is_active', true)
     }
-    
+
     const { data, error } = await query
     if (error) throw error
     return data || []
@@ -762,11 +772,11 @@ export const additionalServiceService = {
       .select('*')
       .eq('category_id', categoryId)
       .order('name')
-    
+
     if (activeOnly) {
       query = query.eq('is_active', true)
     }
-    
+
     const { data, error } = await query
     if (error) throw error
     return data || []
@@ -779,7 +789,7 @@ export const additionalServiceService = {
       .select('*, service_categories(name)')
       .eq('id', id)
       .single()
-    
+
     if (error) throw error
     return data
   },
@@ -798,7 +808,7 @@ export const additionalServiceService = {
       .insert(service)
       .select()
       .single()
-    
+
     if (error) throw error
     return data
   },
@@ -818,7 +828,7 @@ export const additionalServiceService = {
       .eq('id', id)
       .select()
       .single()
-    
+
     if (error) throw error
     return data
   },
@@ -829,7 +839,7 @@ export const additionalServiceService = {
       .from('additional_services')
       .delete()
       .eq('id', id)
-    
+
     if (error) throw error
   }
 }
@@ -847,7 +857,7 @@ export const orderServiceService = {
       .insert(orderService)
       .select()
       .single()
-    
+
     if (error) throw error
     return data
   },
@@ -858,7 +868,7 @@ export const orderServiceService = {
       .from('order_services')
       .select('*, additional_services(*)')
       .eq('order_id', orderId)
-    
+
     if (error) throw error
     return data || []
   },
@@ -869,7 +879,7 @@ export const orderServiceService = {
       .from('order_services')
       .delete()
       .eq('id', id)
-    
+
     if (error) throw error
   }
 }

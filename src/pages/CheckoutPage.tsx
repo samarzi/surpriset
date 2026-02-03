@@ -23,7 +23,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const { createOrder } = useCreateOrder();
   const { profile } = useCustomerProfile();
-  
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -36,7 +36,7 @@ export default function CheckoutPage() {
     paymentMethod: 'card',
     deliveryMethod: 'courier'
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [selectedPackaging, setSelectedPackaging] = useState<Packaging | null>(null);
   const [packagingOptions, setPackagingOptions] = useState<Packaging[]>([]);
@@ -51,14 +51,14 @@ export default function CheckoutPage() {
     if (state.items.length === 0) {
       // Сохраняем текущую позицию скролла
       const scrollY = window.scrollY
-      
+
       // Блокируем скролл
       document.body.style.position = 'fixed'
       document.body.style.top = `-${scrollY}px`
       document.body.style.left = '0'
       document.body.style.width = '100%'
       document.body.style.overflow = 'hidden'
-      
+
       return () => {
         // Восстанавливаем скролл
         const scrollY = document.body.style.top
@@ -67,7 +67,7 @@ export default function CheckoutPage() {
         document.body.style.left = ''
         document.body.style.width = ''
         document.body.style.overflow = ''
-        
+
         if (scrollY) {
           window.scrollTo(0, parseInt(scrollY || '0') * -1)
         }
@@ -281,11 +281,10 @@ export default function CheckoutPage() {
                               key={packaging.id}
                               type="button"
                               onClick={() => setSelectedPackaging(packaging)}
-                              className={`group flex w-full items-center gap-3 rounded-2xl border p-2.5 text-left transition-all checkout-card ${
-                                isSelected
+                              className={`group flex w-full items-center gap-3 rounded-2xl border p-2.5 text-left transition-all checkout-card ${isSelected
                                   ? 'border-primary/60 bg-primary/5 shadow-md'
                                   : 'border-border/50 bg-background hover:border-primary/40 hover:bg-muted/30'
-                              }`}
+                                }`}
                             >
                               <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-muted checkout-card-image">
                                 {packaging.image_url ? (
@@ -300,7 +299,7 @@ export default function CheckoutPage() {
                                   </div>
                                 )}
                                 {isSelected && (
-                                  <span className="absolute right-1 top-1 rounded-full bg-primary p-1 text-white shadow">
+                                  <span className="absolute right-1 top-1 rounded-full bg-primary p-1 text-black shadow">
                                     <Check className="h-3 w-3" />
                                   </span>
                                 )}
@@ -328,7 +327,7 @@ export default function CheckoutPage() {
                     )}
                   </CardContent>
                 </Card>
-                
+
                 <div className="w-full rounded-2xl border border-border/50 bg-background/80 p-2.5 sm:p-3 checkout-action">
                   <div className="flex flex-col gap-2 w-full">
                     <Button variant="outline" className="h-9 text-xs w-full" asChild>
@@ -637,10 +636,10 @@ export default function CheckoutPage() {
                   <div className="flex justify-between">
                     <span>Доставка:</span>
                     <span>
-                      {formData.deliveryMethod === 'pickup' 
-                        ? 'Бесплатно' 
-                        : deliveryPrice === 0 
-                          ? 'Бесплатно' 
+                      {formData.deliveryMethod === 'pickup'
+                        ? 'Бесплатно'
+                        : deliveryPrice === 0
+                          ? 'Бесплатно'
                           : formatPrice(deliveryPrice)
                       }
                     </span>
@@ -677,13 +676,7 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Delivery Info */}
-                {state.total < 3000 && formData.deliveryMethod === 'courier' && (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-                    <p className="text-xs text-blue-600 dark:text-blue-400">
-                      💡 Добавьте товаров на {formatPrice(3000 - state.total)} для бесплатной доставки
-                    </p>
-                  </div>
-                )}
+
               </CardContent>
             </Card>
           </div>

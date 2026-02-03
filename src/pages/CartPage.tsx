@@ -51,7 +51,7 @@ export default function CartPage() {
 
   const estimatedDelivery = useMemo(() => {
     if (state.total >= 5000) {
-      return 'Бесплатная доставка за 1-2 дня по Москве и 3-5 дней по России';
+      return 'Доставка за 1-2 дня по Москве и 3-5 дней по России';
     }
     if (state.total >= 3000) {
       return 'Доставка за 1-3 дня по Москве и области';
@@ -224,9 +224,9 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                <Button 
-                  size="responsive" 
-                  className="w-full interactive-transition" 
+                <Button
+                  size="responsive"
+                  className="w-full interactive-transition"
                   onClick={handleCheckout}
                   disabled={!isMinimumReached}
                 >

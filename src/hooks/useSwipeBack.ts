@@ -1,133 +1,120 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface SwipeBackOptions {
   enabled?: boolean;
-  threshold?: number; // Минимальное расстояние для срабатывания (px)
-}
-
-interface SwipeBackHandlers {
-  onPointerDown: (e: React.PointerEvent) => void;
-  onPointerMove: (e: React.PointerEvent) => void;
-  onPointerUp: (e: React.PointerEvent) => void;
-  onPointerCancel: (e: React.PointerEvent) => void;
+  threshold?: number; // Minimum distance to trigger navigation
+  velocityThreshold?: number; // Minimum velocity to trigger navigation (px/ms)
+  edgeWidth?: number; // Area from the left edge to start the swipe
 }
 
 export function useSwipeBack(options: SwipeBackOptions = {}) {
   const {
     enabled = true,
-    threshold = 80, // Стандартный порог для react-swipeable
+    threshold = 100, // Increased threshold for slow swipes
+    velocityThreshold = 0.5, // 0.5 px/ms
+    edgeWidth = 40, // Increased edge width for easier grabbing
   } = options;
 
   const navigate = useNavigate();
   const [isSwiping, setIsSwiping] = useState(false);
-  const [swipeProgress, setSwipeProgress] = useState(0);
-  const effectiveThreshold =
-    typeof window !== 'undefined' && window.innerWidth < 480
-      ? Math.max(55, threshold - 20)
-      : threshold;
+  const [swipeProgress, setSwipeProgress] = useState(0); // 0 to 1
 
-  // Pointer-based swipe-back: без внешних зависимостей, стабильно в браузере
-  const [gesture, setGesture] = useState<{
-    active: boolean;
-    startX: number;
-    startY: number;
-    lastX: number;
-    lastY: number;
-    pointerId: number | null;
-  }>({ active: false, startX: 0, startY: 0, lastX: 0, lastY: 0, pointerId: null });
+  const refState = useRef({
+    startX: 0,
+    startY: 0,
+    startTime: 0,
+    active: false,
+    pointerId: -1,
+  });
 
-  const resetGesture = () => {
-    setGesture({ active: false, startX: 0, startY: 0, lastX: 0, lastY: 0, pointerId: null });
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    if (!enabled) return;
+
+    // Only accept left click or touch
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+
+    // Check if starting from edge
+    if (e.clientX > edgeWidth) return;
+
+    refState.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startTime: Date.now(),
+      active: true,
+      pointerId: e.pointerId,
+    };
+  }, [enabled, edgeWidth]);
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!refState.current.active || e.pointerId !== refState.current.pointerId) return;
+
+    const deltaX = e.clientX - refState.current.startX;
+    const deltaY = e.clientY - refState.current.startY;
+
+    // If we moved more vertically than horizontally initially, cancel the swipe back
+    // to allow scrolling. But since we start at the edge, we usually want to prioritize back.
+    // Let's only cancel if we haven't locked into swiping yet.
+    if (!isSwiping) {
+      if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
+        refState.current.active = false;
+        return;
+      }
+      if (deltaX > 10) {
+        setIsSwiping(true);
+        if (navigator.vibrate) navigator.vibrate(10); // Haptic feedback on start
+      }
+    }
+
+    if (isSwiping) {
+      if (e.cancelable) e.preventDefault(); // Prevent scrolling
+      e.stopPropagation();
+
+      const progress = Math.min(Math.max(deltaX / window.innerWidth, 0), 1);
+      setSwipeProgress(progress);
+    }
+  }, [isSwiping]);
+
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
+    if (!refState.current.active || e.pointerId !== refState.current.pointerId) return;
+
+    const deltaX = e.clientX - refState.current.startX;
+    const deltaTime = Date.now() - refState.current.startTime;
+    const velocity = deltaX / deltaTime;
+
+    // Success if:
+    // 1. Swiped fast enough (velocity > threshold) AND moved in right direction
+    // 2. Swiped far enough (deltaX > threshold)
+    const isVelocitySwipe = velocity > velocityThreshold && deltaX > 20;
+    const isDistanceSwipe = deltaX > threshold;
+
+    if (isSwiping && (isVelocitySwipe || isDistanceSwipe)) {
+      if (navigator.vibrate) navigator.vibrate(20); // Success haptic
+      navigate(-1);
+    }
+
+    // Reset
     setIsSwiping(false);
     setSwipeProgress(0);
-  };
+    refState.current.active = false;
+  }, [isSwiping, navigate, threshold, velocityThreshold]);
 
-  const handlers: SwipeBackHandlers = {
-    onPointerDown: (e) => {
-      if (!enabled) return;
-
-      // Только primary pointer (палец/первая кнопка)
-      if (e.isPrimary === false) return;
-
-      // Edge swipe: начинаем только у левого края
-      if (e.clientX > 30) return;
-
-      setGesture({
-        active: true,
-        startX: e.clientX,
-        startY: e.clientY,
-        lastX: e.clientX,
-        lastY: e.clientY,
-        pointerId: e.pointerId,
-      });
-
-      // На iOS/мобилках может выделяться текст/кнопки — сбрасываем
+  const onPointerCancel = useCallback((e: React.PointerEvent) => {
+    if (e.pointerId === refState.current.pointerId) {
       setIsSwiping(false);
       setSwipeProgress(0);
-    },
-
-    onPointerMove: (e) => {
-      if (!enabled) return;
-      if (!gesture.active) return;
-      if (gesture.pointerId !== e.pointerId) return;
-
-      const deltaX = e.clientX - gesture.startX;
-      const deltaY = e.clientY - gesture.startY;
-
-      // Если жест больше вертикальный — это скролл, не трогаем
-      if (Math.abs(deltaY) > Math.abs(deltaX)) {
-        return;
-      }
-
-      if (deltaX > 0) {
-        // В этот момент это уже осознанный горизонтальный жест — можно предотвращать скролл
-        e.preventDefault();
-        setIsSwiping(true);
-        const progress = Math.min(deltaX / effectiveThreshold, 1);
-        setSwipeProgress(Math.max(0, progress));
-      }
-
-      setGesture((prev) => ({ ...prev, lastX: e.clientX, lastY: e.clientY }));
-    },
-
-    onPointerUp: (e) => {
-      if (!enabled) return;
-      if (!gesture.active) return;
-      if (gesture.pointerId !== e.pointerId) return;
-
-      const deltaX = e.clientX - gesture.startX;
-      const deltaY = e.clientY - gesture.startY;
-
-      // игнорируем вертикальные жесты
-      if (Math.abs(deltaY) > Math.abs(deltaX)) {
-        resetGesture();
-        return;
-      }
-
-      if (deltaX >= effectiveThreshold) {
-        try {
-          navigate(-1);
-        } catch (error) {
-          if (import.meta.env.DEV) {
-            console.error('❌ Navigation error:', error);
-          }
-        }
-      }
-
-      resetGesture();
-    },
-
-    onPointerCancel: (e) => {
-      if (!enabled) return;
-      if (!gesture.active) return;
-      if (gesture.pointerId !== e.pointerId) return;
-      resetGesture();
-    },
-  };
+      refState.current.active = false;
+    }
+  }, []);
 
   return {
-    handlers,
+    handlers: {
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onPointerCancel,
+      onPointerLeave: onPointerCancel,
+    },
     isSwiping,
     swipeProgress,
   };

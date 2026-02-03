@@ -23,33 +23,22 @@ const textSizeClasses = {
   xl: 'text-3xl'
 }
 
-export function Logo({ className, size = 'md', showText = true, variant = 'default' }: LogoProps) {
-  
+export function Logo({ className, size = 'md', showText = true }: LogoProps) {
+
   return (
-    <div className={cn('logo-container inline-flex items-center gap-2 sm:gap-3', className)} style={{ display: 'inline-flex', alignItems: 'center', flexDirection: 'row' }}>
-      <img 
-        src="/logo.svg" 
+    <div className={cn('logo-container inline-flex items-center gap-2 sm:gap-3', className)}>
+      <img
+        src="/logo.svg"
         alt="SurpriSet Logo"
         className={cn('flex-shrink-0', sizeClasses[size])}
-        style={{ flexShrink: 0 }}
       />
-      
+
       {showText && (
-        <span 
+        <span
           className={cn(
-            'font-bold tracking-tight leading-tight',
-            textSizeClasses[size],
-            variant === 'white' 
-              ? 'text-white' 
-              : variant === 'dark' 
-              ? 'text-gray-900' 
-              : 'text-foreground'
+            'font-bold tracking-tight leading-tight logo-text',
+            textSizeClasses[size]
           )}
-          data-theme-text="true"
-          style={{
-            flexShrink: 0,
-            whiteSpace: 'nowrap'
-          }}
         >
           SurpriSet
         </span>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -10,7 +10,6 @@ import {
   Sparkles,
   Gift,
   ShieldCheck,
-  Truck,
   Info,
   Package,
   MessageSquare,
@@ -27,26 +26,20 @@ import { useSwipeBack } from '@/hooks/useSwipeBack';
 import { ReviewList } from '@/components/reviews/ReviewList';
 import { ReviewForm } from '@/components/reviews/ReviewForm';
 import { AverageRating } from '@/components/reviews/StarRating';
-import { ImageFullscreenModal } from '@/components/ui/image-fullscreen-modal';
+import { ProductGallery } from '@/components/products/ProductGallery';
 import { RecommendedProducts } from '@/components/products/RecommendedProducts';
 import { Review, ReviewFormData } from '@/types/review';
 import { toast } from 'sonner';
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'composition' | 'reviews'>('description');
   const { addItem } = useCart();
   const { toggleLike, isLiked } = useLikes();
-  const [fullscreenModalOpen, setFullscreenModalOpen] = useState(false);
-  const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
 
   // Swipe back gesture
   const { isSwiping, swipeProgress, handlers } = useSwipeBack({ enabled: true });
-  const galleryTouchStartX = useRef(0);
-  const galleryTouchStartY = useRef(0);
-  const galleryTouchStartTime = useRef(0);
 
   const { product: dbProduct, loading, error } = useProduct(id ?? null);
   const { telegramUser } = useTelegramWebApp();
@@ -68,23 +61,14 @@ export default function ProductDetailPage() {
   const product = dbProduct ?? (id ? getProductById(id) ?? null : null);
 
   useEffect(() => {
-    setSelectedImageIndex(0);
     setActiveTab('description');
     setEditingReview(false);
-    
+
     // Load user's review
     if (telegramUser && id) {
       getUserReview().then(setUserReview);
     }
   }, [product?.id, telegramUser, id]);
-
-  const galleryImages = useMemo(() => {
-    if (!product) {
-      return ['/placeholder-product.jpg'];
-    }
-
-    return product.images.length > 0 ? product.images : ['/placeholder-product.jpg'];
-  }, [product]);
 
   const productTags = useMemo(() => (product as { tags?: string[] } | null)?.tags ?? [], [product]);
 
@@ -92,28 +76,28 @@ export default function ProductDetailPage() {
     () =>
       product
         ? [
-            {
-              icon: Sparkles,
-              title: 'Выверенная подборка',
-              description:
-                productTags.length > 0
-                  ? `Сочетается с темами: ${productTags.slice(0, 3).join(', ')}`
-                  : 'Подходит для любого повода',
-            },
-            {
-              icon: Gift,
-              title: product.type === 'bundle' ? 'Готовый подарок' : 'Готов к персонализации',
-              description:
-                product.type === 'bundle'
-                  ? 'Всё необходимое уже внутри — остаётся только вручить'
-                  : 'Добавьте в набор и настройте упаковку под событие',
-            },
-            {
-              icon: ShieldCheck,
-              title: 'Гарантия качества',
-              description: 'Каждую позицию проверяем вручную перед отправкой',
-            },
-          ]
+          {
+            icon: Sparkles,
+            title: 'Выверенная подборка',
+            description:
+              productTags.length > 0
+                ? `Сочетается с темами: ${productTags.slice(0, 3).join(', ')}`
+                : 'Подходит для любого повода',
+          },
+          {
+            icon: Gift,
+            title: product.type === 'bundle' ? 'Готовый подарок' : 'Готов к персонализации',
+            description:
+              product.type === 'bundle'
+                ? 'Всё необходимое уже внутри — остаётся только вручить'
+                : 'Добавьте в набор и настройте упаковку под событие',
+          },
+          {
+            icon: ShieldCheck,
+            title: 'Гарантия качества',
+            description: 'Каждую позицию проверяем вручную перед отправкой',
+          },
+        ]
         : [],
     [product],
   );
@@ -135,13 +119,13 @@ export default function ProductDetailPage() {
     () =>
       product
         ? [
-            { label: 'Артикул', value: product.sku },
-            { label: 'Тип', value: product.type === 'product' ? 'Товар' : 'Готовый набор' },
-            {
-              label: 'Добавлен',
-              value: new Date(product.created_at).toLocaleDateString('ru-RU'),
-            },
-          ].filter(Boolean)
+          { label: 'Артикул', value: product.sku },
+          { label: 'Тип', value: product.type === 'product' ? 'Товар' : 'Готовый набор' },
+          {
+            label: 'Добавлен',
+            value: new Date(product.created_at).toLocaleDateString('ru-RU'),
+          },
+        ].filter(Boolean)
         : [],
     [product],
   );
@@ -196,11 +180,7 @@ export default function ProductDetailPage() {
       return;
     }
 
-    // Проверка: только наборы можно добавлять в корзину
-    if (product.type !== 'bundle') {
-      toast.error('Отдельные товары можно добавлять только в набор');
-      return;
-    }
+
 
     try {
       addItem(product, quantity);
@@ -280,7 +260,7 @@ export default function ProductDetailPage() {
         )}
 
         <div
-          className={`page-content ${isSwiping ? 'swiping' : ''}`}
+          className={`page-content ${isSwiping ? 'swiping' : ''} w-full overflow-x-hidden`}
           style={{
             transform: isSwiping ? `translate3d(${swipeProgress * 120}px, 0, 0)` : 'translate3d(0, 0, 0)',
             WebkitTransform: isSwiping ? `translate3d(${swipeProgress * 120}px, 0, 0)` : 'translate3d(0, 0, 0)',
@@ -289,120 +269,47 @@ export default function ProductDetailPage() {
           <div className="container px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
             <div className="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="gap-1.5 sm:gap-2 h-8 sm:h-9 lg:h-10 text-[10px] sm:text-xs lg:text-sm px-2 sm:px-3 lg:px-4 rounded-xl border-2 hover:border-primary/50 hover:bg-primary/10 transition-all duration-200 shadow-sm hover:shadow-md"
+                className="gap-1.5 sm:gap-2 h-8 sm:h-9 lg:h-10 text-[10px] sm:text-xs lg:text-sm px-2 sm:px-3 lg:px-4 rounded-full border border-black/10 dark:border-white/20 bg-white/30 dark:bg-white/10 backdrop-blur-md shadow-sm hover:bg-white/50 dark:hover:bg-white/20 transition-all duration-200"
                 asChild
               >
                 <Link to="/catalog">
                   <ArrowLeft className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
                   <span className="hidden xs:inline">Назад</span>
-                  <span className="hidden sm:inline">к каталогу</span>
                 </Link>
               </Button>
 
-              <div className="flex items-center gap-1 sm:gap-1.5 lg:gap-2">
+              <div className="flex items-center gap-2 sm:gap-2 lg:gap-2">
                 <Button
-                  variant={liked ? 'default' : 'outline'}
+                  variant="ghost"
                   size="sm"
-                  className={`h-7 w-7 sm:h-8 sm:w-8 lg:h-10 lg:w-10 p-0 ${
-                    liked ? 'bg-red-500 text-white hover:bg-red-600' : ''
-                  }`}
+                  className={`h-11 w-11 sm:h-12 sm:w-12 p-0 rounded-full border border-black/10 dark:border-white/20 backdrop-blur-md shadow-sm transition-all flex-shrink-0 ${liked
+                    ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20'
+                    : 'bg-white/30 dark:bg-white/10 hover:bg-white/50 dark:hover:bg-white/20'
+                    }`}
                   onClick={handleToggleLike}
                 >
-                  <Heart className={`h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 ${liked ? 'fill-current' : ''}`} />
+                  <Heart className={`h-5 w-5 sm:h-6 sm:w-6 ${liked ? 'fill-current' : ''}`} />
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="h-7 w-7 sm:h-8 sm:w-8 lg:h-10 lg:w-10 p-0"
+                  className="h-11 w-11 sm:h-12 sm:w-12 p-0 rounded-full border border-black/10 dark:border-white/20 bg-white/30 dark:bg-white/10 backdrop-blur-md shadow-sm hover:bg-white/50 dark:hover:bg-white/20 transition-all flex-shrink-0"
                   onClick={handleShare}
                 >
-                  <Share2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
+                  <Share2 className="h-5 w-5 sm:h-6 sm:w-6" />
                 </Button>
               </div>
             </div>
 
             <div className="grid gap-3 sm:gap-4 lg:gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[400px_1fr]">
-              {/* Gallery */}
-              <div className="space-y-2 sm:space-y-3">
-                <div
-                  className="relative overflow-hidden rounded-xl border bg-card shadow-sm aspect-[3/4]"
-                  onTouchStart={(event) => {
-                    const touch = event.touches[0];
-                    galleryTouchStartX.current = touch.clientX;
-                    galleryTouchStartY.current = touch.clientY;
-                    galleryTouchStartTime.current = Date.now();
-                  }}
-                  onTouchMove={(event) => {
-                    const touch = event.touches[0];
-                    const deltaX = touch.clientX - galleryTouchStartX.current;
-                    const deltaY = touch.clientY - galleryTouchStartY.current;
-
-                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                      event.preventDefault();
-                    }
-                  }}
-                  onTouchEnd={(event) => {
-                    const touch = event.changedTouches[0];
-                    const deltaX = touch.clientX - galleryTouchStartX.current;
-                    const deltaY = touch.clientY - galleryTouchStartY.current;
-                    const deltaTime = Date.now() - galleryTouchStartTime.current;
-                    const velocity = deltaTime > 0 ? deltaX / deltaTime : 0;
-
-                    if (Math.abs(deltaX) < Math.abs(deltaY)) {
-                      return;
-                    }
-
-                    if (galleryImages.length <= 1) {
-                      return;
-                    }
-
-                    if (deltaX < -50 || (deltaX < -20 && velocity < -0.5)) {
-                      setSelectedImageIndex((prev) =>
-                        prev < galleryImages.length - 1 ? prev + 1 : 0
-                      );
-                    } else if (deltaX > 50 || (deltaX > 20 && velocity > 0.5)) {
-                      setSelectedImageIndex((prev) =>
-                        prev > 0 ? prev - 1 : galleryImages.length - 1
-                      );
-                    }
-                  }}
-                >
-                  <img
-                    src={galleryImages[selectedImageIndex]}
-                    alt={product.name}
-                    className="w-full h-full object-cover cursor-pointer"
-                    onClick={() => {
-                      setFullscreenImageIndex(selectedImageIndex);
-                      setFullscreenModalOpen(true);
-                    }}
-                  />
-                  {product.type === 'bundle' && (
-                    <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-primary text-black px-2 py-1 rounded text-[10px] sm:text-xs font-medium">
-                      Готовый набор
-                    </div>
-                  )}
-                </div>
-
-                {galleryImages.length > 1 && (
-                  <div className="flex gap-1 sm:gap-2 overflow-x-auto">
-                    {galleryImages.map((image, index) => (
-                      <button
-                        key={image}
-                        onClick={() => setSelectedImageIndex(index)}
-                        className={`relative flex aspect-[3/4] w-10 sm:w-12 flex-shrink-0 overflow-hidden rounded border transition-all ${
-                          selectedImageIndex === index
-                            ? 'border-primary'
-                            : 'border-border hover:border-border/80'
-                        }`}
-                      >
-                        <img src={image} alt={`${product.name} ${index + 1}`} className="h-full w-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {/* Refactored Gallery */}
+              <ProductGallery
+                images={product.images}
+                productName={product.name}
+                isBundle={product.type === 'bundle'}
+              />
 
               {/* Details */}
               <div className="space-y-3 sm:space-y-4">
@@ -417,20 +324,20 @@ export default function ProductDetailPage() {
                     )}
                   </div>
 
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold leading-tight">
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold leading-tight break-words">
                     {product.name}
                   </h1>
 
                   <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
-                    <span className="text-xl sm:text-2xl lg:text-3xl font-bold">
+                    <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-nowrap text-emerald-500 dark:text-emerald-400">
                       {formatPrice(product.price)}
                     </span>
                     {product.original_price && product.original_price > product.price && (
                       <>
-                        <span className="text-sm sm:text-base lg:text-lg text-muted-foreground line-through">
+                        <span className="text-sm sm:text-base lg:text-lg text-muted-foreground line-through text-nowrap">
                           {formatPrice(product.original_price)}
                         </span>
-                        <span className="bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium">
+                        <span className="bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium whitespace-nowrap">
                           -{Math.round((1 - product.price / product.original_price) * 100)}%
                         </span>
                       </>
@@ -442,7 +349,7 @@ export default function ProductDetailPage() {
                 <div className="border-t pt-3 sm:pt-4">
                   {isAvailable && (
                     <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                      <span className="text-xs sm:text-sm font-medium">Количество:</span>
+                      <span className="text-xs sm:text-sm font-medium text-foreground dark:text-white">Количество:</span>
                       <div className="flex items-center border rounded-lg">
                         <Button
                           variant="ghost"
@@ -453,7 +360,7 @@ export default function ProductDetailPage() {
                         >
                           <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
-                        <span className="px-2 sm:px-3 py-1 min-w-[2rem] sm:min-w-[3rem] text-center text-xs sm:text-sm">
+                        <span className="px-2 sm:px-3 py-1 min-w-[2rem] sm:min-w-[3rem] text-center text-xs sm:text-sm text-foreground dark:text-white font-medium">
                           {quantity}
                         </span>
                         <Button
@@ -469,25 +376,17 @@ export default function ProductDetailPage() {
                   )}
 
                   <div className="flex gap-2 sm:gap-3">
-                    {/* Кнопка "В корзину" только для наборов */}
-                    {product.type === 'bundle' && (
-                      <Button
-                        className="flex-1 h-10 sm:h-12 text-xs sm:text-sm"
-                        onClick={handleAddToCart}
-                        disabled={!isAvailable}
-                      >
-                        <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                        {isAvailable ? 'В корзину' : 'Недоступно'}
-                      </Button>
-                    )}
+                    <Button
+                      className="flex-1 h-10 sm:h-12 text-xs sm:text-sm"
+                      onClick={handleAddToCart}
+                      disabled={!isAvailable}
+                    >
+                      <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                      {isAvailable ? 'В корзину' : 'Недоступно'}
+                    </Button>
                   </div>
 
-                  <div className="mt-2 sm:mt-3 p-2.5 sm:p-3 bg-muted/50 rounded-lg text-xs sm:text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      <Truck className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span>Бесплатная доставка от 3000 ₽</span>
-                    </div>
-                  </div>
+
                 </div>
 
                 {/* Tabs */}
@@ -502,11 +401,10 @@ export default function ProductDetailPage() {
                       <button
                         key={key}
                         onClick={() => setActiveTab(key as any)}
-                        className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-2 text-[10px] sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-                          activeTab === key
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'
-                        }`}
+                        className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-2 text-[10px] sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${activeTab === key
+                          ? 'border-primary text-primary'
+                          : 'border-transparent text-muted-foreground hover:text-foreground'
+                          }`}
                       >
                         <Icon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                         <span className="text-[10px] sm:text-sm">{label}</span>
@@ -526,7 +424,7 @@ export default function ProductDetailPage() {
                         {product.description && (
                           <div>
                             <h3 className="font-semibold mb-2 text-sm sm:text-base">Описание</h3>
-                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed break-words whitespace-pre-wrap">
                               {product.description}
                             </p>
                           </div>
@@ -654,10 +552,10 @@ export default function ProductDetailPage() {
                                   initialData={
                                     editingReview && userReview
                                       ? {
-                                          rating: userReview.rating,
-                                          comment: userReview.comment || '',
-                                          photos: [],
-                                        }
+                                        rating: userReview.rating,
+                                        comment: userReview.comment || '',
+                                        photos: [],
+                                      }
                                       : undefined
                                   }
                                   isEditing={editingReview}
@@ -748,12 +646,6 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
-      <ImageFullscreenModal
-        images={galleryImages}
-        initialIndex={fullscreenImageIndex}
-        isOpen={fullscreenModalOpen}
-        onClose={() => setFullscreenModalOpen(false)}
-      />
     </>
   );
 }

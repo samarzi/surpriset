@@ -33,19 +33,19 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#C6FF00", // Neon Lime
+          DEFAULT: "#4dffc3", // New Teal/Mint
           foreground: "#000000",
-          50: "#F2FFD1",
-          100: "#E6FFA3",
-          200: "#CCFF66",
-          300: "#B3FF33",
-          400: "#9AFF00",
-          500: "#85F000",
-          600: "#6ED400",
-          700: "#57AC00",
-          800: "#407F00",
-          900: "#294F00",
-          950: "#162B00",
+          50: "#e6fffa",
+          100: "#b3ffed",
+          200: "#80ffe0",
+          300: "#4dffc3", // Base color
+          400: "#00ffaa",
+          500: "#00e699",
+          600: "#00cc88",
+          700: "#009966",
+          800: "#006644",
+          900: "#003322",
+          950: "#001a11",
         },
         secondary: {
           DEFAULT: "#000000", // Pure Black
@@ -55,7 +55,7 @@ export default {
         blue: {
           DEFAULT: "#3B82F6", // Modern Blue
           50: "#EFF6FF",
-          100: "#DBEAFE", 
+          100: "#DBEAFE",
           200: "#BFDBFE",
           300: "#93C5FD",
           400: "#60A5FA",
@@ -134,9 +134,9 @@ export default {
         },
       },
       backgroundImage: {
-        'brand-gradient': 'linear-gradient(135deg, #C6FF00 0%, #A8FF00 50%, #85F000 100%)',
-        'brand-gradient-light': 'linear-gradient(135deg, #E6FFA3 0%, #C6FF00 50%, #A8FF00 100%)',
-        'brand-gradient-dark': 'linear-gradient(135deg, #9AFF00 0%, #85F000 50%, #6ED400 100%)',
+        'brand-gradient': 'linear-gradient(135deg, #4dffc3 0%, #00ffaa 50%, #00e68e 100%)',
+        'brand-gradient-light': 'linear-gradient(135deg, #b3ffed 0%, #4dffc3 50%, #00ffaa 100%)',
+        'brand-gradient-dark': 'linear-gradient(135deg, #4dffc3 0%, #00e699 50%, #00b377 100%)',
         'gradient-modern': 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)/0.3) 100%)',
       },
       borderRadius: {
