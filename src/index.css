@@ -4,48 +4,50 @@
 
 @layer base {
   :root {
-    --background: 0 0% 82%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 86%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 86%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 75 100% 50%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 0%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 78%;
-    --muted-foreground: 215.4 16.3% 35%;
-    --accent: 210 40% 78%;
-    --accent-foreground: 222.2 84% 4.9%;
+    /* Новая цветовая схема */
+    --background: 174 47% 8%; /* #022721 */
+    --foreground: 174 100% 92%; /* #d6fff7 */
+    --card: 174 47% 12%;
+    --card-foreground: 174 100% 92%;
+    --popover: 174 47% 12%;
+    --popover-foreground: 174 100% 92%;
+    --primary: 174 100% 50%; /* #00FFCC */
+    --primary-foreground: 174 47% 8%; /* #022721 */
+    --secondary: 174 47% 15%;
+    --secondary-foreground: 174 100% 92%;
+    --muted: 174 47% 20%;
+    --muted-foreground: 174 100% 70%;
+    --accent: 174 47% 25%;
+    --accent-foreground: 174 100% 92%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 68%;
-    --input: 214.3 31.8% 68%;
-    --ring: 75 100% 50%;
+    --destructive-foreground: 174 100% 92%;
+    --border: 174 47% 25%;
+    --input: 174 47% 25%;
+    --ring: 174 100% 50%;
     --radius: 1rem;
   }
 
   .dark {
-    --background: 220 13% 6%;
-    --foreground: 220 9% 95%;
-    --card: 220 13% 8%;
-    --card-foreground: 220 9% 95%;
-    --popover: 220 13% 6%;
-    --popover-foreground: 220 9% 95%;
-    --primary: 75 100% 50%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 0%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 220 13% 12%;
-    --muted-foreground: 220 9% 65%;
-    --accent: 220 13% 12%;
-    --accent-foreground: 220 9% 95%;
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 220 9% 95%;
-    --border: 220 13% 15%;
-    --input: 220 13% 12%;
-    --ring: 75 100% 50%;
+    /* В темной теме используем те же цвета, но с другими оттенками */
+    --background: 174 47% 8%; /* #022721 */
+    --foreground: 174 100% 92%; /* #d6fff7 */
+    --card: 174 47% 10%;
+    --card-foreground: 174 100% 92%;
+    --popover: 174 47% 10%;
+    --popover-foreground: 174 100% 92%;
+    --primary: 174 100% 50%; /* #00FFCC */
+    --primary-foreground: 174 47% 8%; /* #022721 */
+    --secondary: 174 47% 15%;
+    --secondary-foreground: 174 100% 92%;
+    --muted: 174 47% 18%;
+    --muted-foreground: 174 100% 65%;
+    --accent: 174 47% 22%;
+    --accent-foreground: 174 100% 92%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 174 100% 92%;
+    --border: 174 47% 20%;
+    --input: 174 47% 20%;
+    --ring: 174 100% 50%;
   }
 
   /* Глобальная блокировка скролла для модальных окон */
@@ -476,15 +478,15 @@
   button[class*="bg-primary"],
   [class*="bg-primary"],
   .bg-primary {
-    background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 50%, #85F000 100%) !important;
-    color: #000000 !important;
+    background: linear-gradient(135deg, #00FFCC 0%, #00E6B8 50%, #00CC9F 100%) !important;
+    color: #022721 !important;
   }
   
   .btn-primary *,
   button[class*="bg-primary"] *,
   [class*="bg-primary"] *,
   .bg-primary * {
-    color: #000000 !important;
+    color: #022721 !important;
   }
 
   /* Admin panel specific overrides */
@@ -494,7 +496,7 @@
   [data-admin] button[class*="bg-primary"],
   [data-admin] [class*="bg-primary"],
   [data-admin] .bg-primary {
-    color: #000000 !important;
+    color: #022721 !important;
   }
 
   .admin-panel button[class*="bg-primary"] *,
@@ -503,18 +505,18 @@
   [data-admin] button[class*="bg-primary"] *,
   [data-admin] [class*="bg-primary"] *,
   [data-admin] .bg-primary * {
-    color: #000000 !important;
+    color: #022721 !important;
   }
 
   /* Only for gradient buttons with primary background in admin */
   [data-admin] .bg-gradient-to-r[from-primary],
   [data-admin] a[class*="from-primary"] {
-    color: #000000 !important;
+    color: #022721 !important;
   }
 
   [data-admin] .bg-gradient-to-r[from-primary] *,
   [data-admin] a[class*="from-primary"] * {
-    color: #000000 !important;
+    color: #022721 !important;
   }
   
   /* Active state overrides for gradient buttons */
@@ -585,7 +587,7 @@
   }
   
   .text-brand-gradient {
-    background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 50%, #85F000 100%);
+    background: linear-gradient(135deg, #00FFCC 0%, #00E6B8 50%, #00CC9F 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -593,15 +595,16 @@
   
   /* Modern Button Styles */
   .btn-modern-primary {
-    @apply relative overflow-hidden rounded-2xl px-8 py-4 font-semibold text-black transition-all duration-300;
-    background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 100%);
-    box-shadow: 0 8px 32px rgba(198, 255, 0, 0.3);
+    @apply relative overflow-hidden rounded-2xl px-8 py-4 font-semibold transition-all duration-300;
+    background: linear-gradient(135deg, #00FFCC 0%, #00E6B8 100%);
+    color: #022721 !important;
+    box-shadow: 0 8px 32px rgba(0, 255, 204, 0.3);
   }
 
   .btn-modern-primary:hover {
     @apply scale-105;
-    background: linear-gradient(135deg, #A8FF00 0%, #85F000 100%);
-    box-shadow: 0 12px 40px rgba(198, 255, 0, 0.4);
+    background: linear-gradient(135deg, #00E6B8 0%, #00CC9F 100%);
+    box-shadow: 0 12px 40px rgba(0, 255, 204, 0.4);
     transform: translateY(-2px) scale(1.05);
   }
 
@@ -1139,27 +1142,27 @@ button[class*="w-10 h-10"] > span {
     white-space: nowrap !important;
   }
 
-  /* Logo theme-specific colors - always lime gradient */
+  /* Logo theme-specific colors - always cyan gradient */
   [data-theme-text="true"] {
-    background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 50%, #85F000 100%) !important;
+    background: linear-gradient(135deg, #00FFCC 0%, #00E6B8 50%, #00CC9F 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
     color: transparent !important;
   }
   
-  /* Dark theme - same lime gradient */
+  /* Dark theme - same cyan gradient */
   .dark [data-theme-text="true"] {
-    background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 50%, #85F000 100%) !important;
+    background: linear-gradient(135deg, #00FFCC 0%, #00E6B8 50%, #00CC9F 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
     color: transparent !important;
   }
   
-  /* White variant - also use lime gradient for consistency */
+  /* White variant - also use cyan gradient for consistency */
   [data-theme-text="true"].text-white {
-    background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 50%, #85F000 100%) !important;
+    background: linear-gradient(135deg, #00FFCC 0%, #00E6B8 50%, #00CC9F 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
@@ -1343,42 +1346,33 @@ button[class*="w-10 h-10"] > span {
 
   /* IMPROVED BACK BUTTONS - Mobile Specific */
   .mobile-back-button {
-    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+    background: linear-gradient(135deg, rgba(214, 255, 247, 0.9) 0%, rgba(214, 255, 247, 0.7) 100%);
     backdrop-filter: blur(10px);
-    border: 2px solid rgba(198, 255, 0, 0.3);
+    border: 2px solid rgba(0, 255, 204, 0.3);
     border-radius: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.75rem;
+    color: #022721;
     font-weight: 600;
-    color: #374151;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0, 255, 204, 0.1);
   }
 
   .mobile-back-button:hover {
-    background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 100%);
-    border-color: rgba(198, 255, 0, 0.6);
-    color: #000000;
+    background: linear-gradient(135deg, #00FFCC 0%, #00E6B8 100%);
+    border-color: rgba(0, 255, 204, 0.6);
+    color: #022721;
     transform: translateY(-1px) scale(1.02);
-    box-shadow: 0 6px 16px rgba(198, 255, 0, 0.3);
-  }
-
-  .mobile-back-button:active {
-    transform: translateY(0) scale(0.98);
+    box-shadow: 0 8px 30px rgba(0, 255, 204, 0.3);
   }
 
   .dark .mobile-back-button {
-    background: linear-gradient(135deg, rgba(31, 41, 55, 0.9) 0%, rgba(55, 65, 81, 0.8) 100%);
-    color: #F9FAFB;
-    border-color: rgba(198, 255, 0, 0.4);
+    background: linear-gradient(135deg, rgba(2, 39, 33, 0.9) 0%, rgba(2, 39, 33, 0.8) 100%);
+    color: #d6fff7;
+    border-color: rgba(0, 255, 204, 0.4);
   }
 
   .dark .mobile-back-button:hover {
-    background: linear-gradient(135deg, #C6FF00 0%, #A8FF00 100%);
-    color: #000000;
+    background: linear-gradient(135deg, #00FFCC 0%, #00E6B8 100%);
+    color: #022721;
   }
 
   /* Hide horizontal scrollbar but keep functionality */
@@ -1736,7 +1730,7 @@ main > div > .grid:first-child {
   align-items: center !important;
 }
 
-/* КРИТИЧНОЕ ИСПРАВЛЕНИЕ: Принудительно черный текст для ЛЮБЫХ элементов на фоне брендового градиента */
+/* КРИТИЧНОЕ ИСПРАВЛЕНИЕ: Принудительно темный текст для ЛЮБЫХ элементов на фоне брендового градиента */
 .bg-brand-gradient,
 .bg-brand-gradient-light,
 .bg-brand-gradient-dark,
@@ -1768,12 +1762,12 @@ main > div > .grid:first-child {
 [class*="bg-brand-gradient"] .text-gray-50,
 [class*="bg-brand-gradient"] [class*="text-"],
 [class*="bg-brand-gradient"] [class*="text-white"] {
-  color: #000000 !important;
+  color: #022721 !important;
   text-shadow: none !important;
-  -webkit-text-fill-color: #000000 !important;
+  -webkit-text-fill-color: #022721 !important;
 }
 
-/* ТЕМНАЯ ТЕМА: Белый текст для брендовых градиентов */
+/* ТЕМНАЯ ТЕМА: Светлый текст для брендовых градиентов */
 .dark .bg-brand-gradient,
 .dark .bg-brand-gradient-light,
 .dark .bg-brand-gradient-dark,
@@ -1805,9 +1799,9 @@ main > div > .grid:first-child {
 .dark [class*="bg-brand-gradient"] .text-gray-50,
 .dark [class*="bg-brand-gradient"] [class*="text-"],
 .dark [class*="bg-brand-gradient"] [class*="text-white"] {
-  color: #ffffff !important;
+  color: #d6fff7 !important;
   text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
-  -webkit-text-fill-color: #ffffff !important;
+  -webkit-text-fill-color: #d6fff7 !important;
 }
 
 /* Особое правило для админ-панели */
@@ -1817,29 +1811,29 @@ main > div > .grid:first-child {
 .admin-panel [class*="bg-brand-gradient"] *,
 .admin-panel [class*="bg-brand-gradient"] button,
 .admin-panel [class*="bg-brand-gradient"] .btn {
-  color: #000000 !important;
+  color: #022721 !important;
 }
 
-/* ТЕМНАЯ ТЕМА: Админ-панель белый текст на градиентах */
+/* ТЕМНАЯ ТЕМА: Админ-панель светлый текст на градиентах */
 .dark .admin-panel .bg-brand-gradient,
 .dark .admin-panel .bg-brand-gradient-light,
 .dark .admin-panel .bg-brand-gradient-dark,
 .dark .admin-panel [class*="bg-brand-gradient"] *,
 .dark .admin-panel [class*="bg-brand-gradient"] button,
 .dark .admin-panel [class*="bg-brand-gradient"] .btn {
-  color: #ffffff !important;
+  color: #d6fff7 !important;
   text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
-  -webkit-text-fill-color: #ffffff !important;
+  -webkit-text-fill-color: #d6fff7 !important;
 }
 
-/* УНИВЕРСАЛЬНОЕ ПРАВИЛО: Все кнопки с ЛЮБЫМИ градиентами имеют черный текст */
+/* УНИВЕРСАЛЬНОЕ ПРАВИЛО: Все кнопки с ЛЮБЫМИ градиентами имеют темный текст */
 button[class*="bg-gradient"],
 .btn[class*="bg-gradient"],
 [class*="bg-gradient"] button,
 [class*="bg-gradient"] .btn {
-  color: #000000 !important;
+  color: #022721 !important;
   text-shadow: none !important;
-  -webkit-text-fill-color: #000000 !important;
+  -webkit-text-fill-color: #022721 !important;
 }
 
 /* Все дочерние элементы кнопок с градиентами */
@@ -1847,26 +1841,26 @@ button[class*="bg-gradient"] *,
 .btn[class*="bg-gradient"] *,
 [class*="bg-gradient"] button *,
 [class*="bg-gradient"] .btn * {
-  color: #000000 !important;
+  color: #022721 !important;
   text-shadow: none !important;
-  -webkit-text-fill-color: #000000 !important;
+  -webkit-text-fill-color: #022721 !important;
 }
 
-/* ТЕМНАЯ ТЕМА: Белый текст на градиентах */
+/* ТЕМНАЯ ТЕМА: Светлый текст на градиентах */
 .dark button[class*="bg-gradient"],
 .dark .btn[class*="bg-gradient"],
 .dark [class*="bg-gradient"] button,
 .dark [class*="bg-gradient"] .btn {
-  color: #ffffff !important;
+  color: #d6fff7 !important;
   text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
-  -webkit-text-fill-color: #ffffff !important;
+  -webkit-text-fill-color: #d6fff7 !important;
 }
 
 .dark button[class*="bg-gradient"] *,
 .dark .btn[class*="bg-gradient"] *,
 .dark [class*="bg-gradient"] button *,
 .dark [class*="bg-gradient"] .btn * {
-  color: #ffffff !important;
+  color: #d6fff7 !important;
   text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
-  -webkit-text-fill-color: #ffffff !important;
+  -webkit-text-fill-color: #d6fff7 !important;
 }
